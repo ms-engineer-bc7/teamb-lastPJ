@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  db:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: teamb
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: teamb
+
+  backend:
+    build: ./back
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      DATABASE_URL: postgresql://teamb:password@db/teamb
+    volumes:
+      - ./back:/app  # ホストマシンのbackディレクトリをコンテナの/appディレクトリにマウント
+
+  frontend:
+    build: ./front
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
