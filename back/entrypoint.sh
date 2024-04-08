@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# データベースが起動するのを待つ
+# データベースの起動を待つ
 echo "Waiting for DB to be ready..."
 while ! nc -z db 5432; do   
   sleep 1
