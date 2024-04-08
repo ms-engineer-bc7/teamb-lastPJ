@@ -11,6 +11,9 @@ COPY requirements.txt .
 # Pythonの依存関係とUvicornをインストール
 RUN pip install --no-cache-dir -r requirements.txt
 
+# langchain-openaiとlangchainのインストールを追加
+RUN pip install langchain-openai langchain
+
 # Node.jsのインストール (Prismaが必要とするため)
 RUN apt-get update && \
     apt-get install -y curl netcat-openbsd && \ 
@@ -18,6 +21,9 @@ RUN apt-get update && \
     apt-get install -y nodejs && \
     npm install -g prisma @prisma/client && \
     rm -rf /var/lib/apt/lists/*
+
+# Prisma CLI と Prisma Client のインストール
+RUN npm install -g prisma @prisma/client
 
 # エントリポイントスクリプトをコピー
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
