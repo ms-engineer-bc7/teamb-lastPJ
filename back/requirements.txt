@@ -1,4 +1,4 @@
-# pip installでインストールされるものをここに書く
+# pip installでインストールされるものをここに書く---
 fastapi
 uvicorn
 gunicorn

@@ -28,8 +28,10 @@ services:
       - db
     environment:
       DATABASE_URL: postgresql://teamb:password@db/teamb
+      OPENAI_API_KEY: ${OPENAI_API_KEY}  # .envから読み込まれます
     volumes:
       - ./back:/app  # ホストマシンのbackディレクトリをコンテナの/appディレクトリにマウント
+      - ./.env:/app/.env   # .envファイルをコンテナ内の/appディレクトリにマウント
 
   frontend:
     build: ./front
