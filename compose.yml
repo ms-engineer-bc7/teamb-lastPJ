@@ -10,7 +10,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: "root"
     depends_on:
       - db
-      
+
   db:
     image: postgres
     volumes:
@@ -21,7 +21,9 @@ services:
       POSTGRES_DB: teamb
 
   backend:
-    build: ./back
+    build: 
+      context: ./back
+      dockerfile: Dockerfile  # 必要に応じてDockerfileの名前を指定
     ports:
       - "8000:8000"
     depends_on:
@@ -42,3 +44,47 @@ services:
 
 volumes:
   postgres_data:
+
+
+# version: '3.8'
+# services:
+#   pgadmin:
+#     image: dpage/pgadmin4
+#     restart: always
+#     ports:
+#       - "5050:80"
+#     environment:
+#       PGADMIN_DEFAULT_EMAIL: "admin@admin.com"
+#       PGADMIN_DEFAULT_PASSWORD: "root"
+#     depends_on:
+#       - db
+      
+#   db:
+#     image: postgres
+#     volumes:
+#       - postgres_data:/var/lib/postgresql/data
+#     environment:
+#       POSTGRES_USER: teamb
+#       POSTGRES_PASSWORD: password
+#       POSTGRES_DB: teamb
+
+#   backend:
+#     build: ./back
+#     ports:
+#       - "8000:8000"
+#     depends_on:
+#       - db
+#     environment:
+#       DATABASE_URL: postgresql://teamb:password@db/teamb
+#     volumes:
+#       - ./back:/app  # ホストマシンのbackディレクトリをコンテナの/appディレクトリにマウント
+
+#   frontend:
+#     build: ./front
+#     ports:
+#       - "3000:3000"
+#     depends_on:
+#       - backend
+
+# volumes:
+#   postgres_data:
