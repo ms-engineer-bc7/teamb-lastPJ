@@ -9,7 +9,7 @@ COPY requirements.txt .
 # COPY requirements.txt .
 
 # Pythonの依存関係とUvicornをインストール
-RUN pip install --no-cache-dir -r requirements.txt uvicorn
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Node.jsのインストール (Prismaが必要とするため)
 RUN apt-get update && \

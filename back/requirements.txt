@@ -1,3 +1,9 @@
+# pip installでインストールされるものをここに書く
 fastapi
 uvicorn
 gunicorn
+python-dotenv
+requests  #追加
+langchain==0.1.1
+langchain-community==0.0.13
+langchain-openai==0.0.2.post1

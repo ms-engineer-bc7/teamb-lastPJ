@@ -9,10 +9,13 @@ echo "DB started."
 
 # マイグレーションとシーディングを実行
 echo "Running migrations..."
+
 # npx prisma migrate deploy
 # 4/7追加↓
 npx prisma migrate deploy --schema /app/prisma/schema.prisma
+# Pythonによるシーディングを実行
 echo "Seeding database..."
+python prisma/seed.py
 # npx prisma db seed
 # npx prisma db seed --schema /app/prisma/schema.prisma
 python /app/prisma/seed.py
