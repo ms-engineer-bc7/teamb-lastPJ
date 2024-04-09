@@ -4,6 +4,7 @@ import os
 import requests
 from langchain_openai import OpenAI # OpenAIをインポート
 from langchain.prompts import PromptTemplate
+from .routes import hotpepper #horpepperをインポート追加　4/9えりな
 
 # 環境変数の読み込み
 load_dotenv()
@@ -22,6 +23,7 @@ knowledge = """
 """
 
 app = FastAPI()
+app.include_router(hotpepper.router)#追加　4/9えりな
 
 @app.get("/places/")
 def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius: int = 2000, language: str = "ja"):
