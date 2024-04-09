@@ -5,6 +5,8 @@ import requests
 from langchain_openai import OpenAI # OpenAIをインポート
 from langchain.prompts import PromptTemplate
 from .routes import hotpepper #horpepperをインポート追加　4/9えりな
+from pydantic import BaseModel #PydanticのBaseModel追加　4/9のりぴ
+
 
 # 環境変数の読み込み
 load_dotenv()
@@ -25,6 +27,10 @@ knowledge = """
 app = FastAPI()
 app.include_router(hotpepper.router)#追加　4/9えりな
 
+class ResponseModel(BaseModel):#追加　4/9のりぴ
+    message: str
+
+# エンドポイント/placesとどちらでもいいが統一する
 @app.get("/places/")
 def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius: int = 2000, language: str = "ja"):
     api_key = GOOGLE_MAPS_API_KEY  # APIキーをここに入力してください
@@ -59,13 +65,20 @@ def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius
     )
 
     # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
-    res = llm(prompt.format(knowledge=knowledge))
-    return res
+    llm_response = llm(prompt.format(knowledge=knowledge))
+
+    # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
+    response = ResponseModel(message=llm_response)
+    return response
+
+    # こっちはtextになる OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
+    # res = llm(prompt.format(knowledge=knowledge))
+    # return res
 
 
 
 
-# -----以下後ほどGoogle Map実装時に使用予定なのでこのまま残します-----
+# -----以下後ほどGoogle Map実装時に使用予定なのでこのまま残します(のりぴ)-----
 
 # def get_geocode(location: str) -> dict:
 #     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
