@@ -1,10 +1,12 @@
 from fastapi import FastAPI
-from dotenv import load_dotenv
 import os
+import stripe #stripeをインポート
+from dotenv import load_dotenv
 import requests
 from langchain_openai import OpenAI # OpenAIをインポート
 from langchain.prompts import PromptTemplate
 from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加　4/9えりな
+
 
 # 環境変数の読み込み
 load_dotenv()
@@ -13,6 +15,9 @@ load_dotenv()
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 print("OPENAI_API_KEY:", OPENAI_API_KEY)
+stripe_secret_key = os.getenv('STRIPE_SECRET_KEY')
+stripe.api_key = stripe_secret_key
+print("Stripe_SECRET_Key:", stripe.api_key) # デバッグ用の行
 
 # OpenAIのインスタンスを作成　生成されるテキストの予測可能性
 llm = OpenAI(temperature=0.9, api_key=os.getenv("OPENAI_API_KEY"))
@@ -61,6 +66,19 @@ async def get_places(location: str = "35.7356,139.6522", query: str = "公園", 
     res = llm(prompt.format(knowledge=knowledge))
     return res
 
+@app.get("/")
+def read_root():
+    return {"Hello": "World"}
+
+# 新しいPaymentIntentを作成するエンドポイント
+@app.get("/secret")
+def create_payment_intent():
+    intent = stripe.PaymentIntent.create(
+        amount=330, 
+        currency="jpy", 
+        payment_method_types=["card"],
+    )
+    return {"client_secret": intent.client_secret}
 # Hotpepper APIからレストラン情報を取得してLLMが返す
 @app.get("/recommendations/")
 async def get_recommendations():
