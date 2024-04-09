@@ -13,7 +13,7 @@ GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 print("OPENAI_API_KEY:", OPENAI_API_KEY)
 
-# OpenAIのインスタンスを作成
+# OpenAIのインスタンスを作成　生成されるテキストの予測可能性
 llm = OpenAI(temperature=0.9, api_key=os.getenv("OPENAI_API_KEY"))
 
 # 本当はベクターDBとか PDF などから動的に取得するべき。
@@ -41,27 +41,29 @@ def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius
 
     places_data = response.json()
 
-   # 取得した場所の名前のリストを作る
+   # 取得した場所の名前のリストを作る　places_namesがリスト
     places_names = [place['name'] for place in places_data.get('results', [])]
 
-    # レスポンスにOpenAIを利用して加工を行う
+    # レスポンスにOpenAIを利用して加工を行う　取得データをLLMに投げている部分
+    # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
     knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
     prompt = PromptTemplate(
         input_variables=["knowledge"],
         template=f"""
         {knowledge}
 
-        これらの場所について、どんな情報を知りたいですか？
+        光が丘に住む30代女性、５歳の子供がいて、遠くまでは行けないが土日に子供と出かけたい。休日の適切な過ごし方を具体的な場所の名称も用いて提案してください。
         """,
     )
 
-    # OpenAIにプロンプトを送り、レスポンスを得る
+    # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
     res = llm(prompt.format(knowledge=knowledge))
     return res
 
 
 
 
+# -----以下後ほどGoogle Map実装時に使用予定なのでこのまま残します-----
 
 # def get_geocode(location: str) -> dict:
 #     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
