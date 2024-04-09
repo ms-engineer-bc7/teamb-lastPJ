@@ -5,7 +5,9 @@ from dotenv import load_dotenv
 import requests
 from langchain_openai import OpenAI # OpenAIをインポート
 from langchain.prompts import PromptTemplate
+from pydantic import BaseModel #PydanticのBaseModel追加　4/9のりぴ
 from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加　4/9えりな
+
 
 
 # 環境変数の読み込み
@@ -29,6 +31,10 @@ knowledge = """
 
 app = FastAPI()
 
+class ResponseModel(BaseModel):#追加　4/9のりぴ
+    message: str
+
+# エンドポイント/placesとどちらでもいいが統一する
 @app.get("/places/")
 async def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius: int = 2000, language: str = "ja"):
     api_key = GOOGLE_MAPS_API_KEY  # APIキーをここに入力してください
@@ -63,8 +69,16 @@ async def get_places(location: str = "35.7356,139.6522", query: str = "公園", 
     )
 
     # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
-    res = llm(prompt.format(knowledge=knowledge))
-    return res
+    # 文字数増やすコード追加
+    llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1024)
+
+    # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
+    response = ResponseModel(message=llm_response)
+    return response
+
+    # こっちはtextになる OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
+    # res = llm(prompt.format(knowledge=knowledge))
+    # return res
 
 @app.get("/")
 def read_root():
@@ -104,7 +118,7 @@ async def get_recommendations():
 
 
 
-# -----以下後ほどGoogle Map実装時に使用予定なのでこのまま残します-----
+# -----以下後ほどGoogle Map実装時に使用予定なのでこのまま残します(のりぴ)-----
 
 # def get_geocode(location: str) -> dict:
 #     api_key = os.getenv("GOOGLE_MAPS_API_KEY")

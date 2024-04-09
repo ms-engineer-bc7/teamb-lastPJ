@@ -1,6 +1,6 @@
 # Python bytecode files
 __pycache__/
-*.pyc
+.pyc
 *.pyo
 *.pyd
 
