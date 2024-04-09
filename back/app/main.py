@@ -4,7 +4,7 @@ import os
 import requests
 from langchain_openai import OpenAI # OpenAIをインポート
 from langchain.prompts import PromptTemplate
-from .routes import hotpepper #horpepperをインポート追加　4/9えりな
+from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加　4/9えりな
 
 # 環境変数の読み込み
 load_dotenv()
@@ -23,10 +23,9 @@ knowledge = """
 """
 
 app = FastAPI()
-app.include_router(hotpepper.router)#追加　4/9えりな
 
 @app.get("/places/")
-def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius: int = 2000, language: str = "ja"):
+async def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius: int = 2000, language: str = "ja"):
     api_key = GOOGLE_MAPS_API_KEY  # APIキーをここに入力してください
     base_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
     params = {
@@ -61,6 +60,28 @@ def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius
     # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
     res = llm(prompt.format(knowledge=knowledge))
     return res
+
+# Hotpepper APIからレストラン情報を取得してLLMが返す
+@app.get("/recommendations/")
+async def get_recommendations():
+    restaurants = get_hotpepper_data()  # hotpepper.py で定義された関数を呼び出す
+
+    knowledge = f"以下の場所が見つかりました：{','.join(restaurants)}"
+    prompt = PromptTemplate(
+        input_variables=["knowledge"],
+        template=f"""
+        {knowledge}
+
+        光が丘に住む30代女性、5歳の子供がいて、おすすめの飲食店を教えて。
+        """,
+    )
+
+    # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
+    #文字数を増やすと下記コードになる
+    res = llm(prompt.format(knowledge=knowledge), max_tokens=1024) 
+    return res
+  
+
 
 
 

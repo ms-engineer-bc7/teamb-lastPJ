@@ -66,4 +66,6 @@ def get_hotpepper_data():
     # shop_names = [shop['name'] for shop in data["results"][RESPONSE_TARGET]]
 
     return data
+   
+
 
