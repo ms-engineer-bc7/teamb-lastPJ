@@ -65,7 +65,8 @@ def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius
     )
 
     # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
-    llm_response = llm(prompt.format(knowledge=knowledge))
+    # 文字数増やすコード追加
+    llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1024)
 
     # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
     response = ResponseModel(message=llm_response)
