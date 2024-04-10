@@ -2,17 +2,10 @@
 import { useState } from 'react';
 import axios from 'axios';
 
-// 場所の型を定義
-type Place = {
-    name: string;
-    location: string;
-  };
-
 //LLMが返すレスポンスの型定義
 type PlaceResponse = {
     message: string;
   };
-
 
 export default function PlacesPage() {
   const [placesMessage, setPlacesMessage] = useState<string>("");
