@@ -70,7 +70,7 @@ async def get_places(location: str = "35.7356,139.6522", query: str = "公園", 
 
     # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
     # 文字数増やすコード追加
-    llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1024)
+    llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1500)
 
     # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
     response = ResponseModel(message=llm_response)
@@ -93,6 +93,7 @@ def create_payment_intent():
         payment_method_types=["card"],
     )
     return {"client_secret": intent.client_secret}
+
 # Hotpepper APIからレストラン情報を取得してLLMが返す
 @app.get("/recommendations/")
 async def get_recommendations():
