@@ -4,11 +4,15 @@ FROM node:lts
 # ワーキングディレクトリを指定
 WORKDIR /front/src/app
 
-# 同一ディレクトリ内のファイルを全てコピー
-COPY . .
+# アプリケーションの依存関係をインストール
+# package.json と package-lock.json をコピー
+COPY package*.json ./
 
 # パッケージをインストール
 RUN npm install
+
+# 同一ディレクトリ内のファイルを全てコピー
+COPY . .
 
 # 3000番ポートでリッスン
 EXPOSE 3000

@@ -7,7 +7,7 @@ from langchain_openai import OpenAI # OpenAIをインポート
 from langchain.prompts import PromptTemplate
 from pydantic import BaseModel #PydanticのBaseModel追加　4/9のりぴ
 from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加　4/9えりな
-
+from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
 
 
 # 環境変数の読み込み
@@ -30,6 +30,15 @@ knowledge = """
 """
 
 app = FastAPI()
+
+# CORSミドルウェアの設定 4/10のりぴ
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # フロントエンドのオリジンを許可
+    allow_credentials=True,
+    allow_methods=["*"],  # すべてのHTTPメソッドを許可
+    allow_headers=["*"],  # すべてのHTTPヘッダーを許可
+)
 
 class ResponseModel(BaseModel):#追加　4/9のりぴ
     message: str
