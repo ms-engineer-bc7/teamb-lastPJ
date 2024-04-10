@@ -13,6 +13,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 # langchain-openaiとlangchainのインストールを追加
 RUN pip install langchain-openai langchain
 
+# テストに必要なパッケージインストール
+RUN pip install pytest
+
 # Node.jsのインストール (Prismaが必要とするため)
 RUN apt-get update && \
     apt-get install -y curl netcat-openbsd && \
