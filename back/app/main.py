@@ -38,7 +38,7 @@ class ResponseModel(BaseModel):#追加　4/9のりぴ
 @app.get("/places/")
 async def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius: int = 2000, language: str = "ja"):
     api_key = GOOGLE_MAPS_API_KEY  # APIキーをここに入力してください
-    base_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+    google_places_api_endpoint = os.getenv("GOOGLE_PLACES_API_ENDPOINT") # 環境変数からGoogle Places APIエンドポイントを取得
     params = {
         "location": location,
         "query": query,
@@ -48,7 +48,7 @@ async def get_places(location: str = "35.7356,139.6522", query: str = "公園", 
     }
     
     # Google Places APIを叩く
-    response = requests.get(base_url, params=params)
+    response = requests.get(google_places_api_endpoint, params=params)
     print("API Response:", response.text)  # 取得したデータを出力
 
     places_data = response.json()
