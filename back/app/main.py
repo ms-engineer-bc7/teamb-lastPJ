@@ -118,10 +118,33 @@ async def get_recommendations():
         """,
     )
 
-    # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
-    #文字数を増やすと下記コードになる
-    res = llm(prompt.format(knowledge=knowledge), max_tokens=1024) 
-    return res
+    # OpenAIにプロンプトを送り、JSON形式でレスポンスを得る　4/10 えりな
+    llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1024) 
+    response = ResponseModel(message=llm_response)
+    return response
+
+##下記マージする方法
+class CombinedResponseModel(BaseModel):
+    places_message: str
+    recommendations_message: str
+
+@app.get("/combined/", response_model=CombinedResponseModel)
+async def get_combined(location: str = "35.7356,139.6522"):
+    # /places/ からのデータを非同期に取得
+    places_response = await get_places(location=location)
+    
+    # /recommendations/ からのデータを非同期に取得
+    # 非同期でデータを取得するためには、get_hotpepper_data 関数も非同期に対応させる必要があります。
+    recommendations_response = await get_recommendations()
+
+    # 取得したデータをマージ
+    combined_response = CombinedResponseModel(
+        places_message=places_response.message,
+        recommendations_message=recommendations_response.message
+    )
+
+    return combined_response
+
   
 
 
