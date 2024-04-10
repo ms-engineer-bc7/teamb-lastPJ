@@ -1,15 +1,4 @@
-// import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-
-// export default function Home() {
-//   const navigate = useRouter
-//   return (
-//     <div>
-//       <button onClick={() => navigate("/places")}>Go to Places Page</button>
-//     </div>
-//   );
-// }
-
 
 
 export default function Home() {
