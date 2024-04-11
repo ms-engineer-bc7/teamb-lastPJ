@@ -1,8 +1,9 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import os
 import stripe #stripeをインポート
 from dotenv import load_dotenv
 import requests
+import httpx
 from langchain_openai import OpenAI # OpenAIをインポート
 from langchain.prompts import PromptTemplate
 from pydantic import BaseModel #PydanticのBaseModel追加　4/9のりぴ
@@ -41,49 +42,49 @@ app.add_middleware(
 )
 
 class ResponseModel(BaseModel):#追加　4/9のりぴ
-    message: str
+      message: str
 
 # エンドポイント/placesとどちらでもいいが統一する
-@app.get("/places/")
-async def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius: int = 2000, language: str = "ja"):
-    api_key = GOOGLE_MAPS_API_KEY  # APIキーをここに入力してください
-    google_places_api_endpoint = os.getenv("GOOGLE_PLACES_API_ENDPOINT") # 環境変数からGoogle Places APIエンドポイントを取得
-    params = {
-        "location": location,
-        "query": query,
-        "radius": radius,
-        "language": language,
-        "key": api_key
-    }
+# @app.get("/places/")
+# async def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius: int = 2000, language: str = "ja"):
+#     api_key = GOOGLE_MAPS_API_KEY  # APIキーをここに入力してください
+#     google_places_api_endpoint = os.getenv("GOOGLE_PLACES_API_ENDPOINT") # 環境変数からGoogle Places APIエンドポイントを取得
+#     params = {
+#         "location": location,
+#         "query": query,
+#         "radius": radius,
+#         "language": language,
+#         "key": api_key
+#     }
     
     # Google Places APIを叩く
-    response = requests.get(google_places_api_endpoint, params=params)
-    print("API Response:", response.text)  # 取得したデータを出力
+    # response = requests.get(google_places_api_endpoint, params=params)
+    # print("API Response:", response.text)  # 取得したデータを出力
 
-    places_data = response.json()
+    # places_data = response.json()
 
    # 取得した場所の名前のリストを作る　places_namesがリスト
-    places_names = [place['name'] for place in places_data.get('results', [])]
+    # places_names = [place['name'] for place in places_data.get('results', [])]
 
     # レスポンスにOpenAIを利用して加工を行う　取得データをLLMに投げている部分
     # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
-    knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
-    prompt = PromptTemplate(
-        input_variables=["knowledge"],
-        template=f"""
-        {knowledge}
+    # knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
+    # prompt = PromptTemplate(
+    #     input_variables=["knowledge"],
+    #     template=f"""
+    #     {knowledge}
 
-        光が丘に住む30代女性、５歳の子供がいて、遠くまでは行けないが土日に子供と出かけたい。休日の適切な過ごし方を具体的な場所の名称も用いて提案してください。
-        """,
-    )
+    #     光が丘に住む30代女性、５歳の子供がいて、遠くまでは行けないが土日に子供と出かけたい。休日の適切な過ごし方を具体的な場所の名称も用いて提案してください。
+    #     """,
+    # )
 
     # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
     # 文字数増やすコード追加
-    llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1500)
+    # llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1500)
 
     # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
-    response = ResponseModel(message=llm_response)
-    return response
+    # response = ResponseModel(message=llm_response)
+    # return response
 
     # こっちはtextになる OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
     # res = llm(prompt.format(knowledge=knowledge))
@@ -123,7 +124,66 @@ async def get_recommendations():
     res = llm(prompt.format(knowledge=knowledge), max_tokens=1024) 
     return res
   
+class PlaceQuery(BaseModel):
+      location: str
+      query: str
+      radius: int
+      language: str
 
+class ResponseModel(BaseModel):
+    message: str
+
+# ユーザーがフロントで選択した場所[公園等]の情報をAPIが取得しLLMに投げその結果を返す
+@app.post("/places/")
+async def get_places(query: PlaceQuery):
+    # queryの内容ログに出力
+    print(f"Received query: {query.dict()}")
+
+    params = {
+        'key': GOOGLE_MAPS_API_KEY,
+        'location': query.location,
+        'radius': query.radius,
+        'language': query.language,
+        'keyword': query.query,
+    }
+    google_places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(google_places_url, params=params)
+        # ここで応答のステータスコードと内容をログに出力する
+        print(f"Google Places API response status: {resp.status_code}")
+        print(f"Google Places API response data: {resp.json()}")
+
+        if resp.status_code != 200:
+            # エラークライアントに返す
+            raise HTTPException(status_code=resp.status_code, detail=resp.text)
+
+        # LLMにデータを渡し、処理を行う部分を実装。
+        # ここではGoogle Places APIから得たデータをそのまま返しています。
+        places_data = resp.json()
+
+        # 取得した場所の名前のリストを作る　places_namesがリスト
+        places_names = [place['name'] for place in places_data.get('results', [])]
+
+        # レスポンスにOpenAIを利用して加工を行う　取得データをLLMに投げている部分
+        # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
+        knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
+        
+        prompt = PromptTemplate(
+        input_variables=["knowledge"],
+        template=f"""
+        {knowledge}
+
+        光が丘に住む30代女性、５歳の子供がいて、遠くまでは行けないが土日に子供と出かけたい。休日の適切な過ごし方を具体的な場所の名称も用いて提案してください。
+        """,
+        )
+
+        # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
+        # 文字数増やすコード追加
+        llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1500)
+
+        # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
+        response = ResponseModel(message=llm_response)
+        return response
 
 
 
