@@ -8,6 +8,7 @@ from langchain.prompts import PromptTemplate
 from pydantic import BaseModel #PydanticのBaseModel追加　4/9のりぴ
 from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加　4/9えりな
 from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
+from .routes.directions import router as directions_router #4/11えりな
 
 
 # 環境変数の読み込み
@@ -42,6 +43,9 @@ app.add_middleware(
 
 class ResponseModel(BaseModel):#追加　4/9のりぴ
     message: str
+
+# directions ルーターを追加 4/11えりな
+app.include_router(directions_router)
 
 # エンドポイント/placesとどちらでもいいが統一する
 @app.get("/places/")
