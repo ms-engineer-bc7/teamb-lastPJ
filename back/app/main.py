@@ -11,6 +11,7 @@ from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加
 from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
 from .routes.directions import router as directions_router #4/11えりな
 from .geocode import find_nearest_station, GeocodeResponse #4/11ゆか
+from .stationFinder import find_station,GeocodeResponse
 
 # 環境変数の読み込み
 load_dotenv()
@@ -215,12 +216,23 @@ async def get_places(query: PlaceQuery):
         response = ResponseModel(message=llm_response)
         return response
     
-       #位置情報4/11
+#-----位置情報4/11（不特定多数）-----
+# @app.get("/nearest-station/", response_model=GeocodeResponse)
+# async def nearest_station_endpoint(address: str):
+#     return find_nearest_station(address)
+
+#-----練馬駅オンりー検索のみ-----#
 @app.get("/nearest-station/", response_model=GeocodeResponse)
 async def nearest_station_endpoint(address: str):
-    return find_nearest_station(address)
+    if "練馬駅" in address:
+        return find_nearest_station(address)
+    else:
+        raise HTTPException(status_code=400, detail="This service is for Nerima Station only.")
 
-
+#-----最寄り駅からランダムに周辺の駅を取得-----#
+@app.get("/find-station/")
+def get_station_by_address(address: str):
+    return find_station(address)
 
 # -----以下後ほどGoogle Map実装時に使用予定なのでこのまま残します(のりぴ)-----
 

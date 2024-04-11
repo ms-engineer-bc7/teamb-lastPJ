@@ -60,12 +60,12 @@ def find_nearest_station(address: str) -> GeocodeResponse:
 
 app = FastAPI()
 
-@app.get("/nearest-station/", response_model=GeocodeResponse)
-async def nearest_station_endpoint(address: str):
-    if "練馬駅" in address:
-        return find_nearest_station(address)
-    else:
-        raise HTTPException(status_code=400, detail="This service is for Nerima Station only.")
+# @app.get("/nearest-station/", response_model=GeocodeResponse)
+# async def nearest_station_endpoint(address: str):
+#     if "練馬駅" in address:
+#         return find_nearest_station(address)
+#     else:
+#         raise HTTPException(status_code=400, detail="This service is for Nerima Station only.")
 
 
 #----------エンドポイントに練馬駅指定し全部の情報取得----------#
