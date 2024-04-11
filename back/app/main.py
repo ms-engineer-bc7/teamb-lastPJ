@@ -9,7 +9,9 @@ from langchain.prompts import PromptTemplate
 from pydantic import BaseModel, Field  #PydanticのBaseModel追加　4/9のりぴ　# Fieldをインポート 
 from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加　4/9えりな
 from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
-
+from .routes.directions import router as directions_router #4/11えりな
+from .geocode import find_nearest_station, GeocodeResponse #4/11ゆか
+from .stationFinder import find_station,GeocodeResponse
 
 # 環境変数の読み込み
 load_dotenv()
@@ -45,7 +47,11 @@ class ResponseModel(BaseModel):#追加　4/9のりぴ
       message: str
 
 
+
 # --POST検証のため一時的に/places/のGET消しています　4/11のりぴ--
+# directions ルーターを追加 4/11えりな
+app.include_router(directions_router)
+
 # エンドポイント/placesとどちらでもいいが統一する
 # @app.get("/places/")
 # async def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius: int = 2000, language: str = "ja"):
@@ -94,7 +100,7 @@ class ResponseModel(BaseModel):#追加　4/9のりぴ
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"Hello": "BuRaRi-さんぽっと-"}
 
 # 新しいPaymentIntentを作成するエンドポイント
 @app.get("/secret")
@@ -121,10 +127,33 @@ async def get_recommendations():
         """,
     )
 
-    # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
-    #文字数を増やすと下記コードになる
-    res = llm(prompt.format(knowledge=knowledge), max_tokens=1024) 
-    return res
+    # OpenAIにプロンプトを送り、JSON形式でレスポンスを得る　4/10 えりな
+    llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1024) 
+    response = ResponseModel(message=llm_response)
+    return response
+
+##下記マージする方法
+class CombinedResponseModel(BaseModel):
+    places_message: str
+    recommendations_message: str
+
+@app.get("/combined/", response_model=CombinedResponseModel)
+async def get_combined(location: str = "35.7356,139.6522"):
+    # /places/ からのデータを非同期に取得
+    places_response = await get_places(location=location)
+    
+    # /recommendations/ からのデータを非同期に取得
+    # 非同期でデータを取得するためには、get_hotpepper_data 関数も非同期に対応させる必要があります。
+    recommendations_response = await get_recommendations()
+
+    # 取得したデータをマージ
+    combined_response = CombinedResponseModel(
+        places_message=places_response.message,
+        recommendations_message=recommendations_response.message
+    )
+
+    return combined_response
+
   
 class PlaceQuery(BaseModel):
       location: str
@@ -251,9 +280,24 @@ async def get_places(query: PlaceQuery):
 
 
         
+    
+#-----位置情報4/11（不特定多数）-----
+# @app.get("/nearest-station/", response_model=GeocodeResponse)
+# async def nearest_station_endpoint(address: str):
+#     return find_nearest_station(address)
 
+#-----練馬駅オンりー検索のみ-----#
+@app.get("/nearest-station/", response_model=GeocodeResponse)
+async def nearest_station_endpoint(address: str):
+    if "練馬駅" in address:
+        return find_nearest_station(address)
+    else:
+        raise HTTPException(status_code=400, detail="This service is for Nerima Station only.")
 
-
+#-----最寄り駅からランダムに周辺の駅を取得-----#
+@app.get("/find-station/")
+def get_station_by_address(address: str):
+    return find_station(address)
 
 # -----以下後ほどGoogle Map実装時に使用予定なのでこのまま残します(のりぴ)-----
 

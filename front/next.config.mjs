@@ -2,6 +2,10 @@
 const nextConfig = {
     reactStrictMode: true,
     swcMinify: true,
-};
-
-export default nextConfig;
+    env: {
+      STRIPE_PUBLIC_KEY: process.env.STRIPE_PUBLIC_KEY,
+    },
+  };
+  
+  export default nextConfig;
+  
