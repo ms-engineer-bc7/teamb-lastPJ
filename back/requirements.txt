@@ -9,3 +9,5 @@ langchain-community==0.0.13
 langchain-openai==0.0.2.post1
 stripe>=7.0.0
 googlemaps #追加
+geopy #4/11追加
+geocoder
