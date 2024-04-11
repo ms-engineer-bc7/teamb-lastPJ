@@ -6,7 +6,7 @@ import requests
 import httpx
 from langchain_openai import OpenAI # OpenAIをインポート
 from langchain.prompts import PromptTemplate
-from pydantic import BaseModel #PydanticのBaseModel追加　4/9のりぴ
+from pydantic import BaseModel, Field  #PydanticのBaseModel追加　4/9のりぴ　# Fieldをインポート 
 from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加　4/9えりな
 from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
 
@@ -131,6 +131,12 @@ class PlaceQuery(BaseModel):
       query: str
       radius: int
       language: str
+      age: int = None  # 年齢をオプショナルにする
+      station: str  
+      child_age: int = Field(default=None, example=5)  # 子供の年齢フィールドを追加  # 子供の年齢フィールドを追加
+    #   employment: str  # 雇用形態（例: "時短勤務", "正社員", "シフト勤務"）
+    #   marital_status: str = None  # 結婚状況（例: "独身", "既婚"）
+    #   lifestyle: str  # ライフスタイル（例: "電車移動", "徒歩", "自転車"）
 
 class ResponseModel(BaseModel):
     message: str
@@ -138,19 +144,24 @@ class ResponseModel(BaseModel):
 # ユーザーがフロントで選択した場所[公園等]の情報をAPIが取得しLLMに投げその結果を返す
 @app.post("/places/")
 async def get_places(query: PlaceQuery):
-    # queryの内容ログに出力
+  try:
+      # queryの内容ログに出力
     print(f"Received query: {query.dict()}")
 
-    params = {
+    # 年齢が提供されていない場合は「年齢未提供」と表現し、提供されている場合は年齢を表示
+    age_description = f"{query.age}歳" if query.age is not None else "年齢未提供"
+    child_age_description = f"子供は{query.child_age}歳" if query.child_age is not None else "子供の年齢未提供"
+
+    # APIリクエスト
+    google_places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(google_places_url, params = {
         'key': GOOGLE_MAPS_API_KEY,
         'location': query.location,
         'radius': query.radius,
         'language': query.language,
         'keyword': query.query,
-    }
-    google_places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(google_places_url, params=params)
+    })
         # ここで応答のステータスコードと内容をログに出力する
         print(f"Google Places API response status: {resp.status_code}")
         print(f"Google Places API response data: {resp.json()}")
@@ -169,13 +180,17 @@ async def get_places(query: PlaceQuery):
         # レスポンスにOpenAIを利用して加工を行う　取得データをLLMに投げている部分
         # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
         knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
-        
+
+
         prompt = PromptTemplate(
         input_variables=["knowledge"],
         template=f"""
         {knowledge}
 
-        光が丘に住む30代女性、５歳の子供がいて、遠くまでは行けないが土日に子供と出かけたい。休日の適切な過ごし方を具体的な場所の名称も用いて提案してください。
+        {query.station}駅近くに住む{age_description}の女性です。
+        現在の最寄り駅の近くで、土日に{child_age_description}と出かけたい。
+        休日の適切な過ごし方を優しく柔らかい口調で具体的な場所の名称も用いて３～４個提案して欲しい。
+        
         """,
         )
 
@@ -186,6 +201,56 @@ async def get_places(query: PlaceQuery):
         # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
         response = ResponseModel(message=llm_response)
         return response
+    
+  except Exception as e:
+          raise HTTPException(status_code=500, detail=f"内部エラーが発生しました: {str(e)}")
+
+
+
+        # プロンプトの条件分岐
+    # if query.age >= 30 and query.child_age == 5:
+    #     scenario = 1
+    # elif query.age in range(25, 40) and query.employment == "正社員":
+    #     scenario = 2
+    # elif query.age >= 40 and query.marital_status == "独身":
+    #     scenario = 3
+    # else:
+    #     scenario = None
+
+    # if scenario == 1:
+    #     prompt_text = f"""
+    #     {knowledge}
+    #     {query.station}駅近くに住む{query.age}代女性、{query.child_age}歳の家族がいて、
+    #     現在の最寄り駅の近くで、土日にその家族と出かけたい。
+    #     休日の適切な過ごし方を優しく柔らかい口調で具体的な場所の名称も用いて３～４個提案して欲しい。
+    #     """
+    # elif scenario == 2:
+    #     prompt_text = f"""
+    #     {knowledge}
+    #     {query.station}駅から徒歩10分の{query.age}代の会社員が、平日は仕事が忙しく、
+    #     自宅近くで休日に行ける場所の提案を親切に提案して欲しい。
+    #     """
+    # elif scenario == 3:
+    #     prompt_text = f"""
+    #     {knowledge}
+    #     {query.station}駅から徒歩5分の場所に住む{query.age}代女性、独身でシフト勤務、
+    #     不規則な休みを利用して、家の近くで一人で行ける場所の提案を優しく行って欲しい。
+    #     """
+    # else:
+    #     prompt_text = "該当するシナリオがありません。詳細を確認してください。"
+
+    # #  OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
+    #     # 文字数増やすコード追加
+    #     llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1500)
+
+    #     # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
+    #     response = ResponseModel(message=llm_response)
+    #     return response
+
+
+
+
+        
 
 
 
