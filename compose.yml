@@ -30,7 +30,7 @@ services:
       - db
     environment:
       DATABASE_URL: postgresql://teamb:password@db/teamb
-      OPENAI_API_KEY: ${OPENAI_API_KEY}  # .envから読み込まれます
+      OPENAI_API_KEY: ${OPENAI_API_KEY}  # .envから読み込まれます    
     volumes:
       - ./back:/app  # ホストマシンのbackディレクトリをコンテナの/appディレクトリにマウント
       - ./.env:/app/.env   # .envファイルをコンテナ内の/appディレクトリにマウント
@@ -41,6 +41,13 @@ services:
       - "3000:3000"
     depends_on:
       - backend
+    volumes:
+    - ./front:/app  # ローカルのfrontディレクトリをコンテナの/appディレクトリにマウント
+    - /app/node_modules  # コンテナのnode_modulesを保持
+    -  /app/.next # Next.jsアプリケーションのビルドファイルがホストマシンとコンテナー間で共有
+    environment:
+      - NODE_ENV=development # 開発モードで Next.js が起動
+      - WATCHPACK_POLLING=true # ポーリングを有効にしてファイルシステムのイベントを正確に捕捉
 
 volumes:
   postgres_data:
