@@ -10,7 +10,7 @@ from pydantic import BaseModel #PydanticのBaseModel追加　4/9のりぴ
 from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加　4/9えりな
 from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
 from .routes.directions import router as directions_router #4/11えりな
-
+from .geocode import find_nearest_station, GeocodeResponse #4/11ゆか
 
 # 環境変数の読み込み
 load_dotenv()
@@ -99,7 +99,7 @@ app.include_router(directions_router)
 
 @app.get("/")
 def read_root():
-    return {"Hello": "World"}
+    return {"Hello": "BuRaRi-さんぽっと-"}
 
 # 新しいPaymentIntentを作成するエンドポイント
 @app.get("/secret")
@@ -214,7 +214,11 @@ async def get_places(query: PlaceQuery):
         # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
         response = ResponseModel(message=llm_response)
         return response
-
+    
+       #位置情報4/11
+@app.get("/nearest-station/", response_model=GeocodeResponse)
+async def nearest_station_endpoint(address: str):
+    return find_nearest_station(address)
 
 
 
