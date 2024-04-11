@@ -44,6 +44,8 @@ app.add_middleware(
 class ResponseModel(BaseModel):#追加　4/9のりぴ
       message: str
 
+
+# --POST検証のため一時的に/places/のGET消しています　4/11のりぴ--
 # エンドポイント/placesとどちらでもいいが統一する
 # @app.get("/places/")
 # async def get_places(location: str = "35.7356,139.6522", query: str = "公園", radius: int = 2000, language: str = "ja"):

@@ -38,7 +38,7 @@ export default function PlacesPage() {
           {/* 他の場所を追加 */}
         </select>
         <select value={query} onChange={(e) => setQuery(e.target.value)}>
-          <option value="公園">誰と行きたいですか？</option>
+          <option value="公園">誰と行きたい？</option>
           {/* 他のクエリを追加 */}
         </select>
         <select value={radius} onChange={(e) => setRadius(Number(e.target.value))}>
@@ -46,7 +46,7 @@ export default function PlacesPage() {
           {/* 他の半径を追加 */}
         </select>
       </div>
-      <button onClick={fetchPlaces}>場所を取得</button>
+      <button onClick={fetchPlaces}>場所を取得します</button>
       
       {/* 取得したデータを表示 */}
       <ul>
