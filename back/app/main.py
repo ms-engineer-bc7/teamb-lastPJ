@@ -12,8 +12,8 @@ from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
 from .routes.directions import router as directions_router #4/11えりな
 from .geocode import find_nearest_station, GeocodeResponse #4/11ゆか
 from .stationFinder import find_station,GeocodeResponse
-from .stationFinderPost import find_station_async, GeocodeResponse, StationResponse ,StationRequest
-import random #4/12追加のりぴ #4/11ゆか
+from .stationFinderPost import find_station_async, GeocodeResponse, StationResponse ,StationRequest #4/12追加のりぴ
+import random #4/11ゆか
 
 # 環境変数の読み込み
 load_dotenv()
