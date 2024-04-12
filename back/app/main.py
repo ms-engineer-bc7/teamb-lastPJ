@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 import os
 import stripe #stripeをインポート
 from dotenv import load_dotenv
@@ -11,7 +11,8 @@ from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加
 from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
 from .routes.directions import router as directions_router #4/11えりな
 from .geocode import find_nearest_station, GeocodeResponse #4/11ゆか
-from .stationFinder import find_station,GeocodeResponse
+from .stationFinder import find_station,GeocodeResponse, StationResponse, find_station_async, StationRequest
+import random #4/12追加のりぴ
 
 # 環境変数の読み込み
 load_dotenv()
@@ -33,6 +34,7 @@ knowledge = """
 """
 
 app = FastAPI()
+router = APIRouter()
 
 # CORSミドルウェアの設定 4/10のりぴ
 app.add_middleware(
@@ -167,7 +169,7 @@ class PlaceQuery(BaseModel):
 class ResponseModel(BaseModel):
     message: str
 
-# ユーザーがフロントで選択した場所[公園等]の情報をAPIが取得しLLMに投げその結果を返す
+# ユーザーがフロント入力した情報を元にAPIが周辺情報を取得しLLMに投げその結果を返す
 @app.post("/places/")
 async def get_places(query: PlaceQuery):
   try:
@@ -226,59 +228,7 @@ async def get_places(query: PlaceQuery):
         return response
     
   except Exception as e:
-          raise HTTPException(status_code=500, detail=f"内部エラーが発生しました: {str(e)}")
-
-
-
-        # # プロンプトの条件分岐
-
-        #       {query.station}駅近くに住む{age_description}の女性です。
-        # 現在の最寄り駅の近くで、土日に{child_age_description}と出かけたい。
-        # 休日の適切な過ごし方を優しく柔らかい口調で具体的な場所の名称も用いて３～４個提案して欲しい。
-
-    # if query.age >= 30 and query.child_age == 5:
-    #     scenario = 1
-    # elif query.age in range(25, 40) and query.employment == "正社員":
-    #     scenario = 2
-    # elif query.age >= 40 and query.marital_status == "独身":
-    #     scenario = 3
-    # else:
-    #     scenario = None
-
-    # if scenario == 1:
-    #     prompt_text = f"""
-    #     {knowledge}
-    #     {query.station}駅近くに住む{query.age}代女性、{query.child_age}歳の家族がいて、
-    #     現在の最寄り駅の近くで、土日にその家族と出かけたい。
-    #     休日の適切な過ごし方を優しく柔らかい口調で具体的な場所の名称も用いて３～４個提案して欲しい。
-    #     """
-    # elif scenario == 2:
-    #     prompt_text = f"""
-    #     {knowledge}
-    #     {query.station}駅から徒歩10分の{query.age}代の会社員が、平日は仕事が忙しく、
-    #     自宅近くで休日に行ける場所の提案を親切に提案して欲しい。
-    #     """
-    # elif scenario == 3:
-    #     prompt_text = f"""
-    #     {knowledge}
-    #     {query.station}駅から徒歩5分の場所に住む{query.age}代女性、独身でシフト勤務、
-    #     不規則な休みを利用して、家の近くで一人で行ける場所の提案を優しく行って欲しい。
-    #     """
-    # else:
-    #     prompt_text = "該当するシナリオがありません。詳細を確認してください。"
-
-    # #  OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
-    #     # 文字数増やすコード追加
-    #     llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1500)
-
-    #     # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
-    #     response = ResponseModel(message=llm_response)
-    #     return response
-
-
-
-
-        
+          raise HTTPException(status_code=500, detail=f"内部エラーが発生しました: {str(e)}")      
     
 #-----位置情報4/11（不特定多数）-----
 # @app.get("/nearest-station/", response_model=GeocodeResponse)
@@ -298,26 +248,27 @@ async def nearest_station_endpoint(address: str):
 def get_station_by_address(address: str):
     return find_station(address)
 
-# -----以下後ほどGoogle Map実装時に使用予定なのでこのまま残します(のりぴ)-----
+class StationRequest(BaseModel):
+    station_name: str
 
-# def get_geocode(location: str) -> dict:
-#     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
-#     params = {
-#         'address': location,
-#         'key': api_key
-#     }
-#     response = requests.get('https://maps.googleapis.com/maps/api/geocode/json', params=params)
-#     if response.status_code == 200:
-#         json = response.json()
-#         if json['results']:
-#             return json['results'][0]['geometry']['location']
-#     return None
+app.include_router(router)
 
-# @app.get("/geocode")
-# def read_geocode(location: str = "光が丘駅"):
-#     # クエリパラメータとしてlocationを受け取る
-#     geocode_info = get_geocode(location)
-#     if geocode_info:
-#         return geocode_info
-#     else:
-#         return {"error": "Location not found or API error occurred."}
+
+@app.post("/stations/", response_model=StationResponse)
+async def get_station_by_address(request: StationRequest):
+    try:
+        # 駅の位置情報を取得する非同期関数を呼び出す
+        geocode_response = await find_station_async(request.station_name + "駅")
+        
+         # ランダムに駅を選択する
+        if geocode_response.nearby_stations:
+            random_station = random.choice(geocode_response.nearby_stations)
+         # 選択された駅の名前をレスポンスに設定
+            return StationResponse(random_station=random_station, nearby_info=[])
+        else:
+            return StationResponse(random_station="Nearest station not found", nearby_info=[])
+
+    except HTTPException as exc:
+        raise exc
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
