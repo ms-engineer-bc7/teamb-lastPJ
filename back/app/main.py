@@ -162,10 +162,7 @@ class PlaceQuery(BaseModel):
       language: str
       age: int = None  # 年齢をオプショナルにする
       station: str  
-      child_age: int = Field(default=None, example=5)  # 子供の年齢フィールドを追加  # 子供の年齢フィールドを追加
-    #   employment: str  # 雇用形態（例: "時短勤務", "正社員", "シフト勤務"）
-    #   marital_status: str = None  # 結婚状況（例: "独身", "既婚"）
-    #   lifestyle: str  # ライフスタイル（例: "電車移動", "徒歩", "自転車"）
+      visit_type: str  # 訪問タイプを必須フィールドにする
 
 class ResponseModel(BaseModel):
     message: str
@@ -179,7 +176,7 @@ async def get_places(query: PlaceQuery):
 
     # 年齢が提供されていない場合は「年齢未提供」と表現し、提供されている場合は年齢を表示
     age_description = f"{query.age}歳" if query.age is not None else "年齢未提供"
-    child_age_description = f"子供は{query.child_age}歳" if query.child_age is not None else "子供の年齢未提供"
+    visit_type_description = f"訪問タイプ: {query.visit_type}"
 
     # APIリクエスト
     google_places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
@@ -210,16 +207,13 @@ async def get_places(query: PlaceQuery):
         # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
         knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
 
-
+        # {knowledge} でリスト化
         prompt = PromptTemplate(
         input_variables=["knowledge"],
         template=f"""
-        {knowledge}
-
-        {query.station}駅近くに住む{age_description}の女性です。
-        現在の最寄り駅の近くで、土日に{child_age_description}と出かけたい。
-        休日の適切な過ごし方を優しく柔らかい口調で具体的な場所の名称も用いて３～４個提案して欲しい。
-        
+                {query.station}駅近くで{visit_type_description}として土日に出かけたいと考えています。
+                休日の適切な過ごし方を３～４つ提案してください。過ごし方はのんびりとした時間を過ごしたいです。
+                {query.station}から徒歩圏内の周辺情報も以下の場所から選んだ上でその具体的な名称も文章の初めに提示し優しい口調で教えてください：{knowledge}
         """,
         )
 
@@ -236,7 +230,12 @@ async def get_places(query: PlaceQuery):
 
 
 
-        # プロンプトの条件分岐
+        # # プロンプトの条件分岐
+
+        #       {query.station}駅近くに住む{age_description}の女性です。
+        # 現在の最寄り駅の近くで、土日に{child_age_description}と出かけたい。
+        # 休日の適切な過ごし方を優しく柔らかい口調で具体的な場所の名称も用いて３～４個提案して欲しい。
+
     # if query.age >= 30 and query.child_age == 5:
     #     scenario = 1
     # elif query.age in range(25, 40) and query.employment == "正社員":

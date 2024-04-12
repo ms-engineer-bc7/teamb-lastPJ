@@ -14,7 +14,7 @@ export default function PlacesPage() {
   const [placesMessage, setPlacesMessage] = useState<string>("");
   const [age, setAge] = useState<number | undefined>(undefined); // 年齢を数値またはundefinedで管理
   const [station, setStation] = useState(''); // 新しい状態
-  const [childAge, setChildAge] = useState<number | undefined>(undefined);  // 子供の年齢もundefinedで管理
+  const [visitType, setVisitType] = useState('一人');
   // const [employment, setEmployment] = useState('');
   // const [maritalStatus, setMaritalStatus] = useState('');
   // const [lifestyle, setLifestyle] = useState('');
@@ -30,7 +30,7 @@ export default function PlacesPage() {
         language: 'ja',
         age: age || undefined, // 空の場合は undefined を設定 (バックエンドでの処理の改善が必要)
         station, 
-        child_age: childAge,
+        visit_type: visitType,
       };
 
       console.log('Request Body:', requestBody);
@@ -67,15 +67,11 @@ export default function PlacesPage() {
         }}
         placeholder="年代を入力（例: 20）"
       />
-      <input
-        type="number"
-        value={childAge === undefined ? '' : childAge.toString()}
-        onChange={e => {
-        const parsedAge = parseInt(e.target.value, 10);
-        setChildAge(!isNaN(parsedAge) ? parsedAge : undefined);
-        }}
-        placeholder="子供の年齢を入力"
-      />
+      <select value={visitType} onChange={e => setVisitType(e.target.value)}>
+                <option value="一人">一人</option>
+                <option value="子連れ">子連れ</option>
+                <option value="カップル">カップル</option>
+      </select>
       <input
         type="text"
         value={station}
