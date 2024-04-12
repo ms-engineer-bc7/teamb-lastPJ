@@ -4,10 +4,14 @@ from pydantic import BaseModel
 from typing import List
 import requests
 import random  # ランダムに駅を選ぶために追加
+import logging
 
 app = FastAPI()
 # 環境変数からGoogle Maps APIキーを取得
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+
+# ロギング設定
+logging.basicConfig(level=logging.INFO)
 
 class AddressComponent(BaseModel):
     long_name: str
@@ -21,21 +25,26 @@ class Location(BaseModel):
 class Geometry(BaseModel):
     location: Location
 
+class StationInfo(BaseModel):
+    name: str
+    location: Location
+
 class GeocodeResponse(BaseModel):
     address_components: List[AddressComponent]
     formatted_address: str
     geometry: Geometry
-    nearest_station: str
-    nearby_stations: List[str]  # 周辺の駅のリストを含めるために追加
-
+    nearest_station: StationInfo  # 最も近い駅の情報を辞書型で格納
+    nearby_stations: List[StationInfo]  # 周辺の駅の情報を辞書型のリストで格納
 
 def find_station(address: str) -> GeocodeResponse:
+    logging.info(f"Searching for the address: {address}")
     try:
         # 住所から緯度経度を取得
         geocode_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&key={GOOGLE_MAPS_API_KEY}"
         geocode_response = requests.get(geocode_url)
         geocode_data = geocode_response.json()
-
+        logging.info("Geocode response received")
+        
         if geocode_data["status"] != "OK":
             raise HTTPException(status_code=404, detail="Address not found")
 
@@ -48,16 +57,26 @@ def find_station(address: str) -> GeocodeResponse:
         places_response = requests.get(places_url)
         places_data = places_response.json()
 
-        nearby_stations = [station["name"] for station in places_data["results"]]
+        # nearby_stations = [station["name"] for station in places_data["results"]]
+        #周辺駅名・緯度経度
+        nearby_stations = [
+            {
+              "name": station["name"],
+              "location": {
+              "lat": station["geometry"]["location"]["lat"],
+              "lng": station["geometry"]["location"]["lng"]
+             }
+    } for station in places_data["results"]
+]
 
         # 最も近い駅を設定（リストの最初の要素）
-        nearest_station = nearby_stations[0] if nearby_stations else "Nearest station not found"
+        nearest_station = nearby_stations[0] if nearby_stations else "最寄りの駅が見つかりませんでした"
 
         # 最も近い駅を除外してから、残りの駅からランダムに1つ選択
         if len(nearby_stations) > 1:
             selected_station = random.choice(nearby_stations[1:])  # 最初の要素をスキップ
         else:
-            selected_station = "No additional stations found"
+            selected_station = "周辺駅が見つかりませんでした"
 
         return GeocodeResponse(
             address_components=[AddressComponent(long_name=address, short_name=address, types=["premise"])],
@@ -72,3 +91,6 @@ def find_station(address: str) -> GeocodeResponse:
     except Exception as exc:
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from exc
 
+    except Exception as exc:
+        logging.error("An unexpected error occurred", exc_info=True)
+        raise HTTPException(status_code=500, detail="An unexpected error occurred") from exc
