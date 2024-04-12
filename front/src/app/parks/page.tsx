@@ -15,10 +15,7 @@ export default function PlacesPage() {
   const [age, setAge] = useState<number | undefined>(undefined); // 年齢を数値またはundefinedで管理
   const [station, setStation] = useState(''); // 新しい状態
   const [visitType, setVisitType] = useState('一人');
-  // const [employment, setEmployment] = useState('');
-  // const [maritalStatus, setMaritalStatus] = useState('');
-  // const [lifestyle, setLifestyle] = useState('');
-
+ 
   // POSTリクエストで場所を取得する関数
   const fetchPlaces = async () => {
     try {
@@ -89,35 +86,4 @@ export default function PlacesPage() {
     </div>
   );
 }
-      {/* <select value={childAge} onChange={(e) => setChildAge(e.target.value)}>
-        <option value="">子供の年齢を選択</option>
-        <option value="0-5">0-5歳</option>
-        <option value="6-12">6-12歳</option>
-        <option value="13-18">13-18歳</option>
-      </select>
-      <select value={employment} onChange={(e) => setEmployment(e.target.value)}>
-        <option value="">雇用形態を選択</option>
-        <option value="full-time">フルタイム勤務</option>
-        <option value="part-time">パートタイム勤務</option>
-      </select>
-      <select value={maritalStatus} onChange={(e) => setMaritalStatus(e.target.value)}>
-        <option value="">結婚状態を選択</option>
-        <option value="single">独身</option>
-        <option value="married">既婚</option>
-      </select>
-      <select value={lifestyle} onChange={(e) => setLifestyle(e.target.value)}>
-        <option value="">選択してください</option>
-        <option value="active">アクティブ</option>
-        <option value="homebody">インドア派</option>
-      </select> */}
-//       <button onClick={fetchPlaces}>場所を取得する</button>
-      
-//       {/* 取得したデータを表示 */}
-//       <ul>
-//         {placesMessage.split(', ').map((name, index) => (
-//           <li key={index}>{name}</li>
-//         ))}
-//       </ul>
-//     </div>
-//   );
-// }
+
