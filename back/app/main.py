@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, APIRouter
 import os
 import stripe #stripeをインポート
 from dotenv import load_dotenv
@@ -6,12 +6,14 @@ import requests
 import httpx
 from langchain_openai import OpenAI # OpenAIをインポート
 from langchain.prompts import PromptTemplate
-from pydantic import BaseModel #PydanticのBaseModel追加　4/9のりぴ
+from pydantic import BaseModel, Field  #PydanticのBaseModel追加　4/9のりぴ　# Fieldをインポート 
 from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加　4/9えりな
 from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
 from .routes.directions import router as directions_router #4/11えりな
 from .geocode import find_nearest_station, GeocodeResponse #4/11ゆか
-from .stationFinder import find_station,GeocodeResponse #4/11ゆか
+from .stationFinder import find_station,GeocodeResponse
+from .stationFinderPost import find_station_async, GeocodeResponse, StationResponse ,StationRequest #4/12追加のりぴ
+import random #4/11ゆか
 
 # 環境変数の読み込み
 load_dotenv()
@@ -32,6 +34,7 @@ knowledge = """
 """
 
 app = FastAPI()
+router = APIRouter()
 
 # CORSミドルウェアの設定 4/10のりぴ
 app.add_middleware(
@@ -159,26 +162,34 @@ class PlaceQuery(BaseModel):
       query: str
       radius: int
       language: str
+      age: int = None  # 年齢をオプショナルにする
+      station: str  
+      visit_type: str  # 訪問タイプを必須フィールドにする
 
 class ResponseModel(BaseModel):
     message: str
 
-# ユーザーがフロントで選択した場所[公園等]の情報をAPIが取得しLLMに投げその結果を返す
+# ユーザーがフロント入力した情報を元にAPIが周辺情報を取得しLLMに投げその結果を返す
 @app.post("/places/")
 async def get_places(query: PlaceQuery):
-    # queryの内容ログに出力
+  try:
+      # queryの内容ログに出力
     print(f"Received query: {query.dict()}")
 
-    params = {
+    # 年齢が提供されていない場合は「年齢未提供」と表現し、提供されている場合は年齢を表示
+    age_description = f"{query.age}歳" if query.age is not None else "年齢未提供"
+    visit_type_description = f"訪問タイプ: {query.visit_type}"
+
+    # APIリクエスト
+    google_places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(google_places_url, params = {
         'key': GOOGLE_MAPS_API_KEY,
         'location': query.location,
         'radius': query.radius,
         'language': query.language,
         'keyword': query.query,
-    }
-    google_places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
-    async with httpx.AsyncClient() as client:
-        resp = await client.get(google_places_url, params=params)
+    })
         # ここで応答のステータスコードと内容をログに出力する
         print(f"Google Places API response status: {resp.status_code}")
         print(f"Google Places API response data: {resp.json()}")
@@ -197,13 +208,14 @@ async def get_places(query: PlaceQuery):
         # レスポンスにOpenAIを利用して加工を行う　取得データをLLMに投げている部分
         # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
         knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
-        
+
+        # {knowledge} でリスト化
         prompt = PromptTemplate(
         input_variables=["knowledge"],
         template=f"""
-        {knowledge}
-
-        光が丘に住む30代女性、５歳の子供がいて、遠くまでは行けないが土日に子供と出かけたい。休日の適切な過ごし方を具体的な場所の名称も用いて提案してください。
+                {query.station}駅近くで{visit_type_description}として土日に出かけたいと考えています。
+                休日の適切な過ごし方を３～４つ提案してください。過ごし方はのんびりとした時間を過ごしたいです。
+                {query.station}から徒歩圏内の周辺情報も以下の場所から選んだ上でその具体的な名称も文章の初めに提示し優しい口調で教えてください：{knowledge}
         """,
         )
 
@@ -214,6 +226,9 @@ async def get_places(query: PlaceQuery):
         # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
         response = ResponseModel(message=llm_response)
         return response
+    
+  except Exception as e:
+          raise HTTPException(status_code=500, detail=f"内部エラーが発生しました: {str(e)}")      
     
 #-----位置情報4/11（不特定多数）-----
 # @app.get("/nearest-station/", response_model=GeocodeResponse)
@@ -233,26 +248,27 @@ async def nearest_station_endpoint(address: str):
 def get_station_by_address(address: str):
     return find_station(address)
 
-# -----以下後ほどGoogle Map実装時に使用予定なのでこのまま残します(のりぴ)-----
+class StationRequest(BaseModel):
+    station_name: str
 
-# def get_geocode(location: str) -> dict:
-#     api_key = os.getenv("GOOGLE_MAPS_API_KEY")
-#     params = {
-#         'address': location,
-#         'key': api_key
-#     }
-#     response = requests.get('https://maps.googleapis.com/maps/api/geocode/json', params=params)
-#     if response.status_code == 200:
-#         json = response.json()
-#         if json['results']:
-#             return json['results'][0]['geometry']['location']
-#     return None
+app.include_router(router)
 
-# @app.get("/geocode")
-# def read_geocode(location: str = "光が丘駅"):
-#     # クエリパラメータとしてlocationを受け取る
-#     geocode_info = get_geocode(location)
-#     if geocode_info:
-#         return geocode_info
-#     else:
-#         return {"error": "Location not found or API error occurred."}
+
+@app.post("/stations/", response_model=StationResponse)
+async def get_station_by_address(request: StationRequest):
+    try:
+        # 駅の位置情報を取得する非同期関数を呼び出す
+        geocode_response = await find_station_async(request.station_name + "駅")
+        
+         # ランダムに駅を選択する
+        if geocode_response.nearby_stations:
+            random_station = random.choice(geocode_response.nearby_stations)
+         # 選択された駅の名前をレスポンスに設定
+            return StationResponse(random_station=random_station, nearby_info=[])
+        else:
+            return StationResponse(random_station="Nearest station not found", nearby_info=[])
+
+    # except HTTPException as exc:
+    #     raise exc
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

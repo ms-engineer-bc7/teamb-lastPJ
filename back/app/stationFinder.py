@@ -89,8 +89,5 @@ def find_station(address: str) -> GeocodeResponse:
     except HTTPException as http_exc:
         raise http_exc
     except Exception as exc:
-        raise HTTPException(status_code=500, detail="An unexpected error occurred") from exc
-
-    except Exception as exc:
         logging.error("An unexpected error occurred", exc_info=True)
         raise HTTPException(status_code=500, detail="An unexpected error occurred") from exc
