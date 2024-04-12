@@ -11,7 +11,8 @@ from .routes.hotpepper import get_hotpepper_data #horpepperのデータを追加
 from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
 from .routes.directions import router as directions_router #4/11えりな
 from .geocode import find_nearest_station, GeocodeResponse #4/11ゆか
-from .stationFinder import find_station,GeocodeResponse, StationResponse, find_station_async, StationRequest
+from .stationFinder import find_station,GeocodeResponse
+from .stationFinderPost import find_station_async, GeocodeResponse, StationResponse ,StationRequest
 import random #4/12追加のりぴ #4/11ゆか
 
 # 環境変数の読み込み
@@ -267,7 +268,7 @@ async def get_station_by_address(request: StationRequest):
         else:
             return StationResponse(random_station="Nearest station not found", nearby_info=[])
 
-    except HTTPException as exc:
-        raise exc
+    # except HTTPException as exc:
+    #     raise exc
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
