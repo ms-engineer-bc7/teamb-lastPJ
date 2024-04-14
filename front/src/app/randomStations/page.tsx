@@ -19,9 +19,11 @@ interface PlaceFormProps {}
 const PlaceForm: React.FC<PlaceFormProps> = () => {
   const [stationName, setStationName] = useState<string>('');
   const [visitType, setVisitType] = useState<string>('');
+  const [howToSpendTime, setHowToSpendTime] = useState<string>('leisurely');  // Default value can be changed
   const [stationInfo, setStationInfo] = useState<StationInfo | null>(null);
   const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
+  
 
   const fetchRandomStation = async () => {
       try {
@@ -50,7 +52,8 @@ const PlaceForm: React.FC<PlaceFormProps> = () => {
               visit_type: visitType,
               radius: 2000,
               latitude: lat,
-              longitude: lng
+              longitude: lng,
+              how_to_spend_time: howToSpendTime  // Include how to spend time in the POST request
           });
           console.log('Places recommendation response:', response.data); // 追加：おすすめ情報のレスポンスをログに出力
 
@@ -78,12 +81,20 @@ const PlaceForm: React.FC<PlaceFormProps> = () => {
       {stationInfo && <p>あなたにおすすめの駅：{stationInfo.name}</p>}
     </div>
     <div>
+      誰と一緒に行きますか？
       <select value={visitType} onChange={(e) => setVisitType(e.target.value)}>
-        <option value="">誰と一緒に行きますか？</option>
+        <option value="">Who…？</option>
         <option value="一人">一人</option>
         <option value="子連れ">子連れ</option>
         <option value="カップル">カップル</option>
       </select>
+      どんな時間を過ごしますか？
+      <select value={howToSpendTime} onChange={(e) => setHowToSpendTime(e.target.value)}>
+          <option value="">How…？</option>
+          <option value="leisurely">のんびりとした</option>
+          <option value="active">アクティブな</option>
+          <option value="brief">少しの限られた</option>
+        </select>
       <button onClick={fetchPlacesRecommendation}>recommend</button>
     </div>
     <div>
