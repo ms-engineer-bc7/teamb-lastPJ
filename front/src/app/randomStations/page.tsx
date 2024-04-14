@@ -18,8 +18,8 @@ interface PlaceFormProps {}
 
 const PlaceForm: React.FC<PlaceFormProps> = () => {
   const [stationName, setStationName] = useState<string>('');
-  const [visitType, setVisitType] = useState<string>('');
-  const [howToSpendTime, setHowToSpendTime] = useState<string>('leisurely');  // Default value can be changed
+  const [visitType, setVisitType] = useState<string>('');// デフォルト値入力もできます
+  const [howToSpendTime, setHowToSpendTime] = useState<string>('');  // デフォルト値入力もできます
   const [stationInfo, setStationInfo] = useState<StationInfo | null>(null);
   const [message, setMessage] = useState<string>('');
   const [error, setError] = useState<string>('');
@@ -53,7 +53,7 @@ const PlaceForm: React.FC<PlaceFormProps> = () => {
               radius: 2000,
               latitude: lat,
               longitude: lng,
-              how_to_spend_time: howToSpendTime  // Include how to spend time in the POST request
+              how_to_spend_time: howToSpendTime  // POSTリクエストに時間の使い方を追加
           });
           console.log('Places recommendation response:', response.data); // 追加：おすすめ情報のレスポンスをログに出力
 
