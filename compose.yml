@@ -34,6 +34,7 @@ services:
     volumes:
       - ./back:/app  # ホストマシンのbackディレクトリをコンテナの/appディレクトリにマウント
       - ./.env:/app/.env   # .envファイルをコンテナ内の/appディレクトリにマウント
+      # - ./Log:/logs   # ログをホストマシンのディレクトリに保存する
 
   frontend:
     build: ./front
@@ -48,6 +49,17 @@ services:
     environment:
       - NODE_ENV=development # 開発モードで Next.js が起動
       - WATCHPACK_POLLING=true # ポーリングを有効にしてファイルシステムのイベントを正確に捕捉
+
+  # stripe-cli:
+  #   image: stripe/stripe-cli:latest
+  #   stdin_open: true
+  #   tty: true
+  #   environment:
+  #     STRIPE_API_KEY: your_stripe_api_key_here
+  #   ports:
+  #     - "3001:3001"
+  #   volumes:
+  #     - ./stripe_data:/data
 
 volumes:
   postgres_data:
