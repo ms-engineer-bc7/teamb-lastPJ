@@ -96,6 +96,7 @@ class PlaceQuery(BaseModel):
     radius: int = Field(default=2000, description="検索範囲の半径（メートル）", example=2000)
     latitude: float = Field(description="駅の緯度")
     longitude: float = Field(description="駅の経度")
+    how_to_spend_time: str = Field(description="どんな時間を過ごしたいか: のんびりとしたorアクティブなor少しの限られた", example="leisurely")
 
 class ResponseModel(BaseModel):
     message: str
@@ -103,7 +104,7 @@ class ResponseModel(BaseModel):
 # ------ランダムに取得した駅の名前を基にAPIが周辺情報を取得しLLMに投げその結果を返す------
 @app.post("/places/")
 async def get_places(query: PlaceQuery):
-    logger.debug(f"/place/データを含むリクエストを受信しました: {query.dict()}")
+    logging.debug(f"/place/データを含むリクエストを受信しました: {query.dict()}")
     try:
         # APIリクエスト設定
         google_places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
@@ -118,11 +119,13 @@ async def get_places(query: PlaceQuery):
 
         visit_type_description = f"訪問タイプ: {query.visit_type}"
         logging.debug(f"訪問タイプ渡っているか: {visit_type_description}")
-        
+        how_to_spend_time_description = f"どんな時間を過ごす？: {query.how_to_spend_time}"
+        logging.debug(f"どんな時間を過ごすか: {how_to_spend_time_description}")
+
         async with httpx.AsyncClient() as client:
             resp = await client.get(google_places_url, params=params)
-            logger.debug(f"Google Places API Request URL: {resp.url}")
-            logger.debug(f"Google Places API Response Status: {resp.status_code}")
+            logging.debug(f"Google Places API Request URL: {resp.url}")
+            logging.debug(f"Google Places API Response Status: {resp.status_code}")
 
             if resp.status_code != 200:
                 logger.error(f"Google Places APIエラー: {resp.text}")
@@ -132,38 +135,39 @@ async def get_places(query: PlaceQuery):
             # LLMにデータを渡し、処理を行う部分を実装。
             # ここではGoogle Places APIから得たデータを返す。
             places_data = resp.json()
-            logger.debug(f"Google Places APIから得たデータの中身JSON: {places_data}")
+            logging.debug(f"Google Places APIから得たデータの中身JSON: {places_data}")
         
             # 取得した場所の名前のリストを作る　places_namesがリスト
             places_names = [place['name'] for place in places_data.get('results', [])]
-            logger.debug(f"Google Places APIから得たデータをリスト化: {places_names}")
+            logging.debug(f"Google Places APIから得たデータをリスト化: {places_names}")
         
             # レスポンスにOpenAIを利用して加工を行う　取得データをLLMに投げている部分
             # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
             knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
-            logger.debug(f"LLM に渡すためにAPIから抽出された内容=knowledge: {knowledge}")
+            logging.debug(f"LLM に渡すためにAPIから抽出された内容=knowledge: {knowledge}")
         
             # {knowledge} でリスト化
             prompt = PromptTemplate(
             input_variables=["knowledge"],
             template=f"""
                 {query.station_name}駅近くで{visit_type_description}として土日に出かけたいと考えています。
-                休日の適切な過ごし方を３～４つ提案してください。過ごし方はのんびりとした時間を過ごしたいです。
-                {query.station_name}駅から徒歩圏内の周辺情報も以下の場所から選んだ上でその具体的な名称も文章の初めに提示し優しい口調で教えてください。
+                休日の適切な過ごし方を３～４つ提案してください。過ごし方は{how_to_spend_time_description}時間を過ごしたいです。
+                {query.station_name}駅から徒歩圏内の周辺情報も以下の場所から選んだ上で
+                その具体的な名称を文章の初めに時間ごとで提示し優しい口調で教えてください。
                 周辺情報: {knowledge}
         """,
         )
-
+        
         # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
         # 文字数増やすコード追加
         llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1500)
-        logger.info(f"LLMからの応答: {llm_response}")
+        logging.info(f"LLMからの応答: {llm_response}")
         # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
         response = ResponseModel(message=llm_response)
         return response
     
     except Exception as e:
-        logger.error(f"/places/ エンドポイントのエラー: {e}", exc_info=True)
+        logging.error(f"/places/ エンドポイントのエラー: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"内部エラーが発生しました: {str(e)}") 
 
 
