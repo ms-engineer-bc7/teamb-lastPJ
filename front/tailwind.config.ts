@@ -8,6 +8,8 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      colors: {
+        'custom-gray': '#f5f5f5', // この色コードは例です
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":
@@ -16,5 +18,7 @@ const config: Config = {
     },
   },
   plugins: [],
-};
+},
+}
+
 export default config;
