@@ -48,8 +48,9 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-@layer utilities {
-  .text-balance {
+/* 多分使われていない。不要なら消します */
+/* @layer utilities {
+  .text-balance { */
     /* text-wrap: balance; */
-  }
-}
+  /* }
+} */
