@@ -9,7 +9,8 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        'custom-gray': '#f5f5f5', // この色コードは例です
+        // 'custom-gray': '#f5f5f5', // この色コードは例です
+        'cream': '#f3e5ab', // 追加したいクリーム色のHEXコード
       backgroundImage: {
         "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
         "gradient-conic":

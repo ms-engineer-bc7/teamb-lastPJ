@@ -83,50 +83,90 @@ const Home: React.FC = () => {
     }
   };
 
-  return (
-    <div>
-      <input
-        type="text"
-        value={stationName}
-        onChange={e => setStationName(e.target.value)}
-        placeholder="最寄り駅を入力してください"
-      />
-      <button onClick={fetchStation}>送信</button>
-      <div>
-        {stationInfo && (
-          <>
-            <p>あなたにおすすめの駅: {stationInfo.name}</p>
-            <div>
-            誰と一緒に行きますか？
-            <select value={visitType} onChange={e => setVisitType(e.target.value)}>
-              <option value="">Who…?</option>
-              <option value="alone">一人</option>
-              <option value="family">子連れ</option>
-              <option value="friends">カップル</option>
-            </select>
-            どんな時間を過ごしますか？
-            <select value={howToSpendTime} onChange={e => setHowToSpendTime(e.target.value)}>
-              <option value="">How…?</option>
-              <option value="relax">のんびりとした</option>
-              <option value="explore">アクティブな</option>
-              <option value="shop">少しの限られた</option>
-            </select>
-            <button onClick={fetchRecommendations}>recommend</button>
-            </div>
-          </>
-        )}
+  return  (
+    // <div className="max-w-4xl mx-auto p-4 bg-cream"> {/* クリーム色の背景を適用 */}
+     <div className="max-w-4xl mx-auto p-4">
+        <div className="mb-4">
+        <input
+          type="text"
+          value={stationName}
+          onChange={e => setStationName(e.target.value)}
+          placeholder="最寄り駅か住所を入力してください"
+          className="input bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal"
+        />
+        <button
+          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4"
+          onClick={fetchStation}
+        >
+          おすすめの駅を探す
+        </button>
+        </div>
+      <div className="flex -mx-2">
+        <div className="flex-1 px-2">
+          {stationInfo && (
+            <>
+             <div className="mb-4 p-4 border rounded-lg shadow-lg bg-white"> {/* 白背景を適用 */}
+            <div className="flex items-center text-xl font-semibold mb-2">
+              <svg className="w-6 h-6 text-pink-500 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"> {/* アイコン */}
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>  
+              {/* <div className="mb-4"> */}
+                <p className="text-xl font-semibold mb-2">あなたにおすすめしたい駅はこちらです</p>
+                </div>
+                <p className="text-lg font-bold mb-4">{stationInfo.name}</p>
+                <label className="block">誰と一緒に行きますか？</label>
+                <select
+                  className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline mb-4"
+                  value={visitType}
+                  onChange={e => setVisitType(e.target.value)}
+                >
+                  <option value="">選択してください</option>
+                  <option value="alone">一人</option>
+                  <option value="family">子供と一緒</option>
+                  <option value="friends">カップル</option>
+                </select>
+                <label className="block">どんな時間を過ごしたいですか？</label>
+                <select
+                  className="block appearance-none w-full bg-white border border-gray-400 hover:border-gray-500 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:shadow-outline mb-4"
+                  value={howToSpendTime}
+                  onChange={e => setHowToSpendTime(e.target.value)}
+                >
+                <option value="leisurely">のんびりとしたい</option>
+                <option value="active">アクティブに</option>
+                <option value="brief">少し限られた</option>
+                </select>
+                <button
+                  className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                  onClick={fetchRecommendations}
+                >
+                  おすすめプランを提案
+                </button>
+              </div>
+            </>
+          )}
+        </div>
         {loadMap && (
-          <Script
-            src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&callback=initMap`}
-            strategy="afterInteractive"
-          />
+          <div className="flex-1 px-2">
+            <Script
+              src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&callback=initMap`}
+              strategy="afterInteractive"
+            />
+            <div id="map" className="w-full h-96 border-2 border-gray-300 mt-4 rounded-lg shadow-lg"></div>
+          </div>
         )}
-        <div id="map" style={{ height: '500px', width: '100%' }}></div>
-        {recommendations && <p>おすすめ: {recommendations}</p>}
-        {error && <p>エラー: {error}</p>}
       </div>
-    </div>
+      {recommendations && (
+        <div className="mt-4 p-4 border-2 border-gray-300 rounded-lg shadow-lg bg-light-blue-50">
+          <p className="font-semibold">今回のおすすめプランです：</p>
+          <p>{recommendations}</p>
+        </div>
+      )}
+      {error && <p className="text-red-500 mt-4">エラー: {error}</p>}
+      </div>
+    // </div>
   );
 };
 
-export default Home;
+  export default Home;  
+
+
