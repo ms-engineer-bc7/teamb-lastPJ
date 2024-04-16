@@ -4,6 +4,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Script from 'next/script'; // Next.js の Script コンポーネントをインポート
 
+declare global {
+  interface Window {
+    initMap: () => void;
+  }
+}
+
 interface StationInfo {
   name: string;
   location: {
@@ -25,15 +31,20 @@ const Home: React.FC = () => {
     window.initMap = function initMap() {
       if (stationInfo) {
         const { lat, lng } = stationInfo.location;
-        const map = new google.maps.Map(document.getElementById('map'), {
-          center: { lat, lng },
-          zoom: 15,
-        });
-        new google.maps.Marker({
-          position: { lat, lng },
-          map,
-          title: stationInfo.name,
-        });
+        const mapDiv = document.getElementById('map');
+        if (mapDiv) { // mapDiv が null ではないことを確認
+            const map = new google.maps.Map(mapDiv, {
+              center: { lat, lng },
+              zoom: 15,
+            });
+            new google.maps.Marker({
+              position: { lat, lng },
+              map,
+              title: stationInfo.name,
+            });
+        } else {
+          console.error("Failed to initialize map: map container not found");
+        }
       }
     };
   }, [stationInfo]);

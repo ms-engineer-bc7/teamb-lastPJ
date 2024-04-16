@@ -2,16 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
-/* デフォルト */
+/* デフォルト */ */
 /* :root {
   --foreground-rgb: 0, 0, 0;
   /* --foreground-rgb: 0, 0, 0; */
-  --background-start-rgb: 255, 255, 255;
+  /* --background-start-rgb: 255, 255, 255; */
   /* 255, 250, 205; / LemonChiffon / */
   /* --background-start-rgb: 214, 219, 220; */
-  --background-end-rgb: 255, 255, 255;
-/* } */ */
+  /* --background-end-rgb: 255, 255, 255; */
+/* } */
 /* 4/15 */
+
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-end-rgb: 255, 255, 255;
@@ -47,8 +48,9 @@ body {
     rgb(var(--background-start-rgb));
 }
 
-@layer utilities {
-  .text-balance {
+/* 多分使われていない。不要なら消します */
+/* @layer utilities {
+  .text-balance { */
     /* text-wrap: balance; */
-  }
-}
+  /* }
+} */

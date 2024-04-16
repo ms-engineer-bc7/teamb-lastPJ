@@ -78,21 +78,102 @@ import { signInWithEmailAndPassword,signInWithRedirect,getRedirectResult,GoogleA
   };
 
   return (
-    <div>
-      <h1>ログイン情報を入力してください</h1>
-      <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-      <button onClick={handleLoginWithEmail}>メールでログイン</button>
-      <div>
-        <button onClick={handleLoginWithGoogle}>Googleアカウントでログイン</button>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-yellow-300">
+      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold text-center mb-4">ログイン</h1>
+        {/* Existing User Login */}
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+            メールアドレス
+          </label>
+          <input
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="メールアドレス"
+          />
+        </div>
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+            パスワード
+          </label>
+          <input
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="パスワード"
+          />
+        </div>
+        <div className="mb-6">
+          <button
+            className="bg-yellow-200 hover:bg-yellow-300 text-gray-700 font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
+            type="button"
+            onClick={handleLoginWithEmail}
+          >
+            メールでログイン
+          </button>
+        </div>
+        <div className="mb-6">
+          <button
+            className="bg-yellow-200 hover:bg-yellow-300 text-gray-700 font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
+            type="button"
+            onClick={handleLoginWithGoogle}
+          >
+            Googleアカウントでログイン
+          </button>
+        </div>
+        {/* New User Registration */}
+        <h1 className="text-2xl font-bold text-center mb-4">新規登録</h1>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newEmail">
+            新規メールアドレス
+          </label>
+          <input
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="newEmail"
+            type="email"
+            value={newEmail}
+            onChange={(e) => setNewEmail(e.target.value)}
+            placeholder="新規メールアドレス"
+          />
+        </div>
+        <div className="mb-6">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newPassword">
+            新規パスワード
+          </label>
+          <input
+            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="newPassword"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            placeholder="新規パスワード"
+          />
+        </div>
+        <div className="mb-6">
+          <button
+            className="bg-yellow-200 hover:bg-yellow-300 text-gray-700 font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
+            type="button"
+            onClick={handleSignUp}
+          >
+            新規登録
+          </button>
+        </div>
+        <div className="flex justify-center">
+         <button
+           className=" bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+           type="button"
+           onClick={() => router.push('/')}
+         >
+           TOPへ戻る
+         </button>
+        </div>
+        <p className="text-center text-gray-500 text-xs">&copy;2024 Bu.ra.ri Company. All rights reserved.</p>
       </div>
-      {/* 新規登録ボタンを追加 */}
-      <div>
-      <input type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />{/* 新しいstateを使用 */}
-      <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />{/* 新しいstateを使用 */}
-      <button onClick={handleSignUp}>新規登録</button>
-      </div>
-      <button onClick={() => router.push('/')}>TOPへ戻る</button>
     </div>
   );
 };
