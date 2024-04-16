@@ -28,6 +28,6 @@
       "firebase/analytics": ["node_modules/@firebase/analytics/dist/index.d.ts"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts","src/**/*","custom.d.ts"]
   "exclude": ["node_modules"]
 }
