@@ -62,10 +62,10 @@ LangchainでChatGPTを実践的に活用できる
 * YUKA ITO
 
 ## 書類はこちら
-[プロダクト要求仕様書（PRD）](https://www.notion.so/PRD-2e8ad23d47c549c18a75c2405120c631)<br>
+[プロダクト要求仕様書（PRD）](https://miniature-icon-2d2.notion.site/PRD-2e8ad23d47c549c18a75c2405120c631?pvs=4)<br>
 [画面仕様書](https://www.notion.so/WF-5e7afd39bdbd45c7bd14eb6c8ba06b7f)<br>
 
 ## タスク管理
-[Team Bu.Ra.Ri◎タスク管理](https://www.notion.so/Team-Bu-Ra-Ri-aeb75cd0b56548659f275092f95e250f)<br>
+[Team Bu.Ra.Ri◎タスク管理](https://miniature-icon-2d2.notion.site/Team-Bu-Ra-Ri-aeb75cd0b56548659f275092f95e250f?pvs=4)<br>
 
 ## 
