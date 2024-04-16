@@ -43,9 +43,12 @@ const Home: React.FC = () => {
       setError('駅名を入力してください');
       return;
     }
+    console.log(`Requesting data for address: ${stationName}`);  // デバッグ情報の出力
     setError('');
+    // console.log(`Requesting data for address: ${stationName}`);  // デバッグ情報の出力
     try {
       const response = await axios.get(`http://localhost:8000/find-station`, { params: { address: stationName } });
+      console.log('Random station response:', response.data); // 追加：ランダムに選ばれた駅のレスポンスをログに出力
       setStationInfo({
         name: response.data.random_station,
         location: {
@@ -65,16 +68,19 @@ const Home: React.FC = () => {
       setError('先に駅を選択してください');
       return;
     }
+    console.log(`Requesting data for address: ${stationName}`);  // デバッグ情報の出力
     try {
       const { lat, lng } = stationInfo.location;
       const response = await axios.post('http://localhost:8000/places/', {
+        language: 'ja',
         station_name: stationInfo.name,
         visit_type: visitType,
+        radius: 2000,
         latitude: lat,
         longitude: lng,
-        how_to_spend_time: howToSpendTime
+        how_to_spend_time: howToSpendTime // POSTリクエストに時間の使い方を追加s
       });
-      console.log(response.data); 
+      console.log('Places recommendation response:',response.data); 
       setRecommendations(response.data.message);
       setLoadMap(true);  // Trigger the map to load with new marker
     } catch (error) {
@@ -111,7 +117,7 @@ const Home: React.FC = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>  
               {/* <div className="mb-4"> */}
-                <p className="text-xl font-semibold mb-2">あなたにおすすめしたい駅はこちらです</p>
+                <p className="text-xl font-semibold mb-2">あなたにおすすめしたい駅はこちら</p>
                 </div>
                 <p className="text-lg font-bold mb-4">{stationInfo.name}</p>
                 <label className="block">誰と一緒に行きますか？</label>
@@ -131,6 +137,7 @@ const Home: React.FC = () => {
                   value={howToSpendTime}
                   onChange={e => setHowToSpendTime(e.target.value)}
                 >
+                <option value="">選択してください</option>
                 <option value="leisurely">のんびりとしたい</option>
                 <option value="active">アクティブに</option>
                 <option value="brief">少し限られた</option>
