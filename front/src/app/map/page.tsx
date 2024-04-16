@@ -46,6 +46,7 @@ const Home: React.FC = () => {
     setError('');
     try {
       const response = await axios.get(`http://localhost:8000/find-station`, { params: { address: stationName } });
+      console.log('Random station response:', response.data); // 追加：ランダムに選ばれた駅のレスポンスをログに出力
       setStationInfo({
         name: response.data.random_station,
         location: {
