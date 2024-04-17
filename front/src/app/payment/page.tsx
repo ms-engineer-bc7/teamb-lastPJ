@@ -1,4 +1,5 @@
 'use client';
+import React from "react";
 import StripeBuyButton from "./stripebuybutton";
 
 import Head from 'next/head';
