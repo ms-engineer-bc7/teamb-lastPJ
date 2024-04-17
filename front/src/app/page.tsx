@@ -1,8 +1,8 @@
-'use client';
-import Image from 'next/image';
-import Link from 'next/link';
-import titleLogo from '../../public/titleLogo1.png';
-import React from 'react';
+"use client";
+import Image from "next/image";
+import Link from "next/link";
+import titleLogo from "../../public/titleLogo1.png";
+import React from "react";
 
 export default function Home(): JSX.Element {
   return (
@@ -19,7 +19,7 @@ export default function Home(): JSX.Element {
         />
       </div>
       <div className="button-container">
-        <Link href="/randomStations">
+        <Link href="/map">
           <div className="start-button">Start</div>
         </Link>
       </div>
@@ -29,17 +29,17 @@ export default function Home(): JSX.Element {
           justify-content: center;
           align-items: center;
         }
-        
+
         .rounded-image {
           border-radius: 30px;
         }
-        
+
         .button-container {
           display: flex;
           justify-content: center;
           margin-top: 20px;
         }
-        
+
         .start-button {
           padding: 10px 20px;
           background-color: #ff9800;
@@ -48,7 +48,7 @@ export default function Home(): JSX.Element {
           cursor: pointer;
           transition: background-color 0.3s ease;
         }
-        
+
         .start-button:hover {
           background-color: #f57c00;
         }
