@@ -1,45 +1,56 @@
-'use client'
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation'; // 追加
-import { auth } from '../../../firebase'; // Firebaseの設定ファイルをインポート
-import { signInWithEmailAndPassword,signInWithRedirect,getRedirectResult,GoogleAuthProvider,createUserWithEmailAndPassword,sendEmailVerification} from 'firebase/auth';
+"use client";
+import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation"; // 追加
+import { auth } from "../../../firebase"; // Firebaseの設定ファイルをインポート
+import {
+  signInWithEmailAndPassword,
+  signInWithRedirect,
+  getRedirectResult,
+  GoogleAuthProvider,
+  createUserWithEmailAndPassword,
+  sendEmailVerification,
+} from "firebase/auth";
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // シンプルなメール形式チェック用の正規表現
+const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/; // シンプルなメール形式チェック用の正規表現
 
-  const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [newEmail, setNewEmail] = useState(''); // 新しいstateを追加
-  const [newPassword, setNewPassword] = useState(''); // 新しいstateを追加
-  const router = useRouter()
+const LoginPage = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [newEmail, setNewEmail] = useState(""); // 新しいstateを追加
+  const [newPassword, setNewPassword] = useState(""); // 新しいstateを追加
+  const router = useRouter();
 
   // ユーザーが認証後にリダイレクトされたときの結果を処理
   useEffect(() => {
-    getRedirectResult(auth).then((result) => {
-      if (result) {
-        // ユーザーが認証された場合、管理画面へリダイレクト
-        router.push('/managements');
-      }
-      // リダイレクト結果がnullの場合、何もしない
-      // 認証エラーがあればここで処理できる
-    }).catch((error) => {
-      // エラーハンドリング
-      console.error('リダイレクト後の認証エラー:', error);
-    });
+    getRedirectResult(auth)
+      .then((result) => {
+        if (result) {
+          // ユーザーが認証された場合、管理画面へリダイレクト
+          router.push("/managements");
+        }
+        // リダイレクト結果がnullの場合、何もしない
+        // 認証エラーがあればここで処理できる
+      })
+      .catch((error) => {
+        // エラーハンドリング
+        console.error("リダイレクト後の認証エラー:", error);
+      });
   }, [router]);
 
   // メール/パスワードによるログイン処理
   const handleLoginWithEmail = async () => {
     if (!emailRegex.test(email)) {
-      alert('無効なメールアドレス形式です。');
+      alert("無効なメールアドレス形式です。");
       return;
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push('/managements');
+      router.push("/managements");
     } catch (error) {
-      console.error('ログインエラー:', error);
-      alert('ログインに失敗しました。メールアドレスまたはパスワードが正しくありません。');
+      console.error("ログインエラー:", error);
+      alert(
+        "ログインに失敗しました。メールアドレスまたはパスワードが正しくありません。"
+      );
     }
   };
 
@@ -52,16 +63,20 @@ import { signInWithEmailAndPassword,signInWithRedirect,getRedirectResult,GoogleA
   // 新規登録処理を追加
   const handleSignUp = async () => {
     if (!emailRegex.test(newEmail)) {
-      alert('無効な新規メールアドレス形式です。');
+      alert("無効な新規メールアドレス形式です。");
       return;
     }
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, newEmail, newPassword);
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        newEmail,
+        newPassword
+      );
       await sendEmailVerification(userCredential.user);
-      router.push('/managements');
+      router.push("/managements");
     } catch (error) {
-      console.error('新規登録エラー:', error);
-      alert('新規登録に失敗しました。入力したメールアドレスが無効です。');
+      console.error("新規登録エラー:", error);
+      alert("新規登録に失敗しました。入力したメールアドレスが無効です。");
     }
   };
 
@@ -69,21 +84,24 @@ import { signInWithEmailAndPassword,signInWithRedirect,getRedirectResult,GoogleA
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      alert('ログアウトしました');
-      router.push('/login'); // ログアウト後、ログインページにリダイレクト
+      alert("ログアウトしました");
+      router.push("/login"); // ログアウト後、ログインページにリダイレクト
     } catch (error) {
-      console.error('ログアウトに失敗しました:', error);
-      alert('ログアウトに失敗しました');
+      console.error("ログアウトに失敗しました:", error);
+      alert("ログアウトに失敗しました");
     }
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-yellow-300">
+    <div className="min-h-screen flex flex-col items-center justify-center">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
         <h1 className="text-2xl font-bold text-center mb-4">ログイン</h1>
         {/* Existing User Login */}
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="email"
+          >
             メールアドレス
           </label>
           <input
@@ -96,7 +114,10 @@ import { signInWithEmailAndPassword,signInWithRedirect,getRedirectResult,GoogleA
           />
         </div>
         <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="password"
+          >
             パスワード
           </label>
           <input
@@ -129,7 +150,10 @@ import { signInWithEmailAndPassword,signInWithRedirect,getRedirectResult,GoogleA
         {/* New User Registration */}
         <h1 className="text-2xl font-bold text-center mb-4">新規登録</h1>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newEmail">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="newEmail"
+          >
             新規メールアドレス
           </label>
           <input
@@ -142,7 +166,10 @@ import { signInWithEmailAndPassword,signInWithRedirect,getRedirectResult,GoogleA
           />
         </div>
         <div className="mb-6">
-          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newPassword">
+          <label
+            className="block text-gray-700 text-sm font-bold mb-2"
+            htmlFor="newPassword"
+          >
             新規パスワード
           </label>
           <input
@@ -164,19 +191,20 @@ import { signInWithEmailAndPassword,signInWithRedirect,getRedirectResult,GoogleA
           </button>
         </div>
         <div className="flex justify-center">
-         <button
-           className=" bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-           type="button"
-           onClick={() => router.push('/')}
-         >
-           TOPへ戻る
-         </button>
+          <button
+            className=" bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+            type="button"
+            onClick={() => router.push("/")}
+          >
+            TOPへ戻る
+          </button>
         </div>
-        <p className="text-center text-gray-500 text-xs">&copy;2024 Bu.ra.ri Company. All rights reserved.</p>
+        <p className="text-center text-gray-500 text-xs">
+          &copy;2024 Bu.ra.ri Company. All rights reserved.
+        </p>
       </div>
     </div>
   );
 };
 
 export default LoginPage;
-
