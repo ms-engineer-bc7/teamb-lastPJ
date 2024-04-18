@@ -19,7 +19,7 @@ export default function Home(): JSX.Element {
         />
       </div>
       <div className="button-container">
-        <Link href="/map">
+        <Link href="/mains">
           <div className="start-button">Start</div>
         </Link>
       </div>

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { FiSearch, FiMapPin, FiUser } from 'react-icons/fi'; // Feather アイコンをインポートします
+import Link from 'next/link'; // Next.js の Link コンポーネントをインポート
 
 const Header: React.FC = () => {
   return (
@@ -13,15 +14,24 @@ const Header: React.FC = () => {
       </div>
       <div className="flex space-x-6">
         <button>
+       <Link href="/mains">
           <FiSearch className="text-2xl"/> {/* 検索アイコン */}
+       </Link>
         </button>
         <button>
           <FiMapPin className="text-2xl"/> {/* ピンアイコン */}
         </button>
+       <Link href="/logins">
         <button>
           <FiUser className="text-2xl"/> {/* ユーザーアイコン */}
         </button>
-        
+       </Link>
+       <Link href="/logouts">.</Link>
+        {/* ファビコンを追加 */}
+        <Link href="/">
+        <link rel="/negamon.png" href="/favicon.ico" />
+        </Link>
+        {/* その他の必要なメタタグやスクリプトをここに追加 */}
         {/* 他のアイコンやコンポーネント */}
       </div>
     </div>
