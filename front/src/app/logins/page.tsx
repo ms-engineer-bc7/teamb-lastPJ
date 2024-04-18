@@ -26,7 +26,7 @@ const LoginPage = () => {
       .then((result) => {
         if (result) {
           // ユーザーが認証された場合、管理画面へリダイレクト
-          router.push("/managements");
+          router.push("/mains");
         }
         // リダイレクト結果がnullの場合、何もしない
         // 認証エラーがあればここで処理できる
@@ -45,7 +45,7 @@ const LoginPage = () => {
     }
     try {
       await signInWithEmailAndPassword(auth, email, password);
-      router.push("/managements");
+      router.push("/mains");
     } catch (error) {
       console.error("ログインエラー:", error);
       alert(
@@ -73,22 +73,10 @@ const LoginPage = () => {
         newPassword
       );
       await sendEmailVerification(userCredential.user);
-      router.push("/managements");
+      router.push("/mains");
     } catch (error) {
       console.error("新規登録エラー:", error);
       alert("新規登録に失敗しました。入力したメールアドレスが無効です。");
-    }
-  };
-
-  // ログアウト処理
-  const handleLogout = async () => {
-    try {
-      await auth.signOut();
-      alert("ログアウトしました");
-      router.push("/login"); // ログアウト後、ログインページにリダイレクト
-    } catch (error) {
-      console.error("ログアウトに失敗しました:", error);
-      alert("ログアウトに失敗しました");
     }
   };
 
