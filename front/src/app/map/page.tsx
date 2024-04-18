@@ -56,7 +56,6 @@ const Home: React.FC = () => {
     }
     console.log(`Requesting data for address: ${stationName}`);  // デバッグ情報の出力
     setError('');
-    // console.log(`Requesting data for address: ${stationName}`);  // デバッグ情報の出力
     try {
       const response = await axios.get(`http://localhost:8000/find-station`, { params: { address: stationName } });
       console.log('Random station response:', response.data); // 追加：ランダムに選ばれた駅のレスポンスをログに出力
