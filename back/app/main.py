@@ -17,6 +17,7 @@ import logging
 import requests
 import httpx
 import stripe #stripeをインポート
+from .my_prisma import save_recommendation
 
 # 環境変数の読み込み
 load_dotenv()
@@ -101,6 +102,13 @@ class PlaceQuery(BaseModel):
 class ResponseModel(BaseModel):
     message: str
 
+class RecommendationModel(BaseModel):
+    user_id: int = Field(..., description="ユーザーの識別ID")
+    company: str = Field(..., description="訪問タイプ")
+    activity_type: str = Field(..., description="どのように時間を過ごすか")
+    recommend_station: str = Field(..., description="推薦された駅の名前")
+    recommend_details: str = Field(..., description="推薦の詳細情報")
+
 # ------ランダムに取得した駅の名前を基にAPIが周辺情報を取得しLLMに投げその結果を返す------
 @app.post("/places/")
 async def get_places(query: PlaceQuery):
@@ -164,6 +172,17 @@ async def get_places(query: PlaceQuery):
         logging.info(f"LLMからの応答: {llm_response}")
         # LLMのレスポンスをResponseModelの形式に合わせて整形 JSONに直す
         response = ResponseModel(message=llm_response)
+
+        # 推薦情報を作成しデータベースに保存 <--- 新たに追加した部分
+        recommendation = RecommendationModel(
+            user_id=1,
+            company=query.visit_type,
+            activity_type=query.how_to_spend_time,
+            recommend_station=query.station_name,
+            recommend_details=response.message
+            )
+        await save_recommendation(recommendation)
+
         return response
     
     except Exception as e:
