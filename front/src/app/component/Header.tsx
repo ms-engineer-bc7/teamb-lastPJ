@@ -8,7 +8,9 @@ const Header: React.FC = () => {
     <div className="bg-yellow-200 p-4 flex justify-between items-center">
       <div className="flex items-center space-x-4">
         <div className="rounded-full h-12 w-12 flex items-center justify-center bg-pink-200">
+         <Link href="/">
           <img src="/negamon.png" className="h-8 w-8" />
+         </Link>
         </div>
         <span className="text-2xl font-bold">Bu.Ra.Ri</span>
       </div>
@@ -28,9 +30,7 @@ const Header: React.FC = () => {
        </Link>
        <Link href="/logouts">.</Link>
         {/* ファビコンを追加 */}
-        <Link href="/">
         <link rel="/negamon.png" href="/favicon.ico" />
-        </Link>
         {/* その他の必要なメタタグやスクリプトをここに追加 */}
         {/* 他のアイコンやコンポーネント */}
       </div>
