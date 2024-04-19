@@ -171,11 +171,12 @@ interface StationInfo {
   return (
     <div className="max-w-4xl mx-auto p-4">
         <div className="bg-blue-500 text-white p-4 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4">
-                <h1 className="text-lg">Welcome to User</h1>
-                {user && (
+                <h1 className="text-lg">Welcome to ... 
+                {/* {user && (
                     <p>User: {user.displayName || "User"}!</p>  // ユーザー名を表示
-                )}
-            </div>
+                )} */}
+                <span>{user ? user.displayName + "さん" || "User" : "Guestさん"}</span></h1>
+        </div>
       <div className="mb-4">
         <input
           type="text"
