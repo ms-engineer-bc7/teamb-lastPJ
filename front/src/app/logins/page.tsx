@@ -200,16 +200,16 @@ const LoginPage = () => {
           </button>
         </div>
         <div className="flex justify-center">
-          <button
+          {/* <button
             className=" bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
             type="button"
             onClick={() => router.push("/")}
           >
             TOPへ戻る
-          </button>
+          </button> */}
         </div>
         <p className="text-center text-gray-500 text-xs">
-          &copy;2024 Bu.ra.ri Company. All rights reserved.
+          &copy;2024 Bu.ra.ri BC7th. All rights reserved.
         </p>
       </div>
     </div>

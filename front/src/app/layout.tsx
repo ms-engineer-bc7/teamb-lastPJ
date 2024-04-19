@@ -11,12 +11,16 @@ interface RootLayoutProps {
 
 export const metadata = {
   title: "Bu.Ra.Ri -さんぽっと-",
-  description: "BC7 by create next app",
+  description: "BC7th Generation created this app",
 };
 
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" className={inter.className}>
+       <head>
+        {/* ファビコンの設定をここに移動 */}
+        <link rel="icon" href="/negamon.ico" />
+      </head>
       <body>
         <Header />
         {children}
