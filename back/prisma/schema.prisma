@@ -9,3 +9,26 @@ generator client {
   provider             = "prisma-client-py"
   recursive_type_depth = 5
 }
+
+model User {
+  user_id   Int           @id @default(autoincrement())
+  email     String        @unique
+  member    String
+  created_at DateTime
+  Recommendation Recommendation[]
+
+  @@map("users")
+}
+
+model Recommendation {
+  recommend_id     Int      @id @default(autoincrement())
+  user_id          Int　　　　// Userへの外部キーとして使用
+  company          String
+  activity_type    String
+  recommend_station String
+  recommend_details String
+  created_at       DateTime
+  User             User     @relation(fields: [user_id], references: [user_id])
+
+  @@map("recommendations")
+}
