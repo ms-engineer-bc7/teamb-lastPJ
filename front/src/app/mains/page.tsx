@@ -66,13 +66,12 @@ interface StationInfo {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   
   useEffect(() => {
-      window.initMap = function initMap() {
+    const initMap = () => {
       if (stationInfo) {
         const { lat, lng } = stationInfo.location;
         const mapDiv = document.getElementById('map');
         if (mapDiv) {
-          // 既存の地図を削除
-          mapDiv.innerHTML = '';
+          mapDiv.innerHTML = ''; // Clear any existing map
           const map = new google.maps.Map(mapDiv, {
             center: { lat, lng },
             zoom: 15,
@@ -87,8 +86,30 @@ interface StationInfo {
         }
       }
     };
-  }, [stationInfo, stationName]); // stationNameを依存リストに追加
-
+  
+    const loadGoogleMapsScript = () => {
+      const existingScript = document.querySelector(`script[src^="https://maps.googleapis.com/maps/api/js"]`);
+      if (!existingScript) {
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+        script.async = true;
+        window.initMap = window.initMap || initMap;
+        document.body.appendChild(script);
+      }
+    };
+  
+    if (typeof window.google === 'object' && typeof window.google.maps === 'object') {
+      initMap(); // If Google Maps is already loaded, just initialize the map
+    } else {
+      loadGoogleMapsScript(); // Otherwise, load the Google Maps script
+    }
+  
+    return () => {
+      // Clean up event listener when component unmounts
+      window.initMap = undefined;
+    };
+  }, [stationInfo]); // Dependencies array ensures this effect runs only when stationInfo changes
+  
 
   const fetchStation = async () => {
     if (!stationName) {
@@ -236,10 +257,6 @@ interface StationInfo {
         )}
         {loadMap && (
           <div className="flex-1 px-2">
-            <Script
-              src={`https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&callback=initMap`}
-              strategy="afterInteractive"
-            />
             <div id="map" className="w-full h-96 border-2 border-gray-300 mt-4 rounded-lg shadow-lg"></div>
           </div>
         )}
