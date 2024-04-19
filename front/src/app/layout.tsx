@@ -1,25 +1,26 @@
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from './component/Header';
+import type { ReactNode } from 'react';
 
 const inter = Inter({ subsets: ["latin"] });
 
-export const metadata: Metadata = {
+interface RootLayoutProps {
+  children: ReactNode;
+}
+
+export const metadata = {
   title: "Bu.Ra.Ri -さんぽっと-",
   description: "BC7 by create next app",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: RootLayoutProps) {
   return (
-    <html lang="ja">
-      <body className={inter.className}>
-      <Header />
-        {children}</body>
+    <html lang="en" className={inter.className}>
+      <body>
+        <Header />
+        {children}
+      </body>
     </html>
   );
-  }
+}

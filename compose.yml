@@ -46,6 +46,7 @@ services:
     - ./front:/app  # ローカルのfrontディレクトリをコンテナの/appディレクトリにマウント
     - /app/node_modules  # コンテナのnode_modulesを保持
     -  /app/.next # Next.jsアプリケーションのビルドファイルがホストマシンとコンテナー間で共有
+    command: npm run dev
     environment:
       - NODE_ENV=development # 開発モードで Next.js が起動
       - WATCHPACK_POLLING=true # ポーリングを有効にしてファイルシステムのイベントを正確に捕捉
