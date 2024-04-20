@@ -1,6 +1,6 @@
 'use client'; 
 import React from 'react';
-import { FiSearch, FiMapPin, FiUser } from 'react-icons/fi'; // Feather アイコンをインポートします
+import { FiSearch, FiUser } from 'react-icons/fi'; // Feather アイコンをインポートします
 import { MdOutlineLogout } from "react-icons/md";
 import Link from 'next/link'; // Next.js の Link コンポーネントをインポート
 import { useRouter } from 'next/navigation'; // next/navigation から useRouter をインポート
