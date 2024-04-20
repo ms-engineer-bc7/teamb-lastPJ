@@ -158,12 +158,10 @@ async def get_places(query: PlaceQuery):
             prompt = PromptTemplate(
             input_variables=["knowledge"],
             template=f"""
-                おすすめの駅は{query.station_name}駅周辺。
-                誰と一緒に行くか{visit_type_description}。
-                過ごし方は{how_to_spend_time_description}。
-                上記の内容で、土日に出かけたいと考えています。休日の適切な過ごし方を３～４つ提案してください。
-                {query.station_name}駅から徒歩圏内の場所や飲食店を以下の周辺情報から選んだ上で
-                その具体的な名称を提示して改行を用いて優しく喋り口調で教えてください。
+                土日に{query.station_name}駅周辺の徒歩で行ける範囲にサクッと{visit_type_description}外出し、
+                {how_to_spend_time_description}時間を過ごしたいと考えています。
+                最適な、休日の過ごし方を{knowledge}から３～４つピックアップし、行く相手に合わせた場所の提案をして欲しい。
+                場所の名称を出して、癒されるような優しい日本語で提案してほしい。
                 周辺情報: {knowledge}
         """,
         )
