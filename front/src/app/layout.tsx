@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from './component/Header';
+import { UserProvider } from './context/user-context';
 import type { ReactNode } from 'react';
 
 const inter = Inter({ subsets: ["latin"] });
@@ -22,8 +23,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <link rel="icon" href="/negamon.ico" />
       </head>
       <body>
+       <UserProvider>
         <Header />
         {children}
+       </UserProvider>
       </body>
     </html>
   );
