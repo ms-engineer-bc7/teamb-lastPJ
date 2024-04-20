@@ -7,13 +7,6 @@ import Link from "next/link";
 import { auth } from "../../../firebase"; // Firebaseの設定ファイルをインポート
 import { User, onAuthStateChanged } from 'firebase/auth';
 
-
-declare global {
-  interface Window {
-    initMap: () => void;
-  }
-}
-
 interface StationInfo {
   name: string;
   location: {
@@ -66,6 +59,8 @@ interface StationInfo {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   
   useEffect(() => {
+    let map: google.maps.Map | undefined;
+
     const initMap = () => {
       if (stationInfo) {
         const { lat, lng } = stationInfo.location;
@@ -93,8 +88,11 @@ interface StationInfo {
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
         script.async = true;
-        window.initMap = window.initMap || initMap;
+        // window.initMap = window.initMap;
+        script.onload = initMap;
         document.body.appendChild(script);
+      } else {
+        initMap();
       }
     };
   
@@ -106,7 +104,10 @@ interface StationInfo {
   
     return () => {
       // Clean up event listener when component unmounts
-      window.initMap = undefined;
+      if (map) {
+        map.unbindAll();
+        map = undefined;
+      }
     };
   }, [stationInfo]); // Dependencies array ensures this effect runs only when stationInfo changes
   
