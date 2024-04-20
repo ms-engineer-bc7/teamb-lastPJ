@@ -6,53 +6,30 @@ import React from "react";
 
 export default function Home(): JSX.Element {
   return (
-    <div>
-      <div className="image-container">
+      <div className="min-h-screen flex flex-col items-center">
+       <div className="mt-20">
         <Image
           src={titleLogo}
           alt="My Image"
           width={640}
           height={360}
-          className="rounded-image"
+          className="rounded-[30px]"
           priority
           unoptimized
         />
-      </div>
-      <div className="button-container">
+       </div>
+       <div className="mt-12">
         <Link href="/mains">
-          <div className="start-button">Start</div>
+        <div className="px-10 py-4 bg-orange-500 text-white text-2xl font-bold rounded-lg cursor-pointer transition duration-300 
+        ease-in-out hover:bg-orange-600">お出掛けしてみる？</div>
         </Link>
+       </div>
+       <div className="text-center mt-6">
+         <div className="border-2 border-dotted border-gray-400 p-4 rounded">
+          <p>休日のちょっとした外出先に困っていませんか？  一人でゆっくりしたい、お子さんと出かけたい、恋人とアクティブに活動したい等</p>
+          <p>Bu.Ra.Ri-さんぽっと-は、あなたの家の近くの駅をランダムに選び、あなたが選んだ条件から休日のお出掛けの提案をしてくれるアプリです</p>
+         </div>
+       </div>
       </div>
-      <style jsx>{`
-        .image-container {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-
-        .rounded-image {
-          border-radius: 30px;
-        }
-
-        .button-container {
-          display: flex;
-          justify-content: center;
-          margin-top: 20px;
-        }
-
-        .start-button {
-          padding: 10px 20px;
-          background-color: #ff9800;
-          color: white;
-          border-radius: 5px;
-          cursor: pointer;
-          transition: background-color 0.3s ease;
-        }
-
-        .start-button:hover {
-          background-color: #f57c00;
-        }
-      `}</style>
-    </div>
   );
 }

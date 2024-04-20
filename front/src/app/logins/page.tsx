@@ -94,7 +94,7 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center">
+    <div className="flex flex-col items-center justify-center w-full p-4">
       {isLoading && ( // ローディングが true の場合のみ表示
       <div className="fixed top-0 left-0 w-full h-full bg-gray-200 opacity-75 flex items-center justify-center z-50">
         <div className="loader-wrapper flex flex-col items-center justify-center">
@@ -103,117 +103,66 @@ const LoginPage = () => {
          </div>
       </div>
     )}
-      <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-md">
-        <h1 className="text-2xl font-bold text-center mb-4">ログイン</h1>
-        {/* Existing User Login */}
+
+    
+       {/* BOX1: 新規登録 */}
+       <div className="w-full max-w-xl p-8 bg-white rounded-lg shadow-md mt-6 mb-4 border-2 border-dotted border-yellow-500">
+        <h1 className="text-2xl font-bold text-center mb-2">初めての方はこちら</h1>
+        <h2 className="text-xl font-bold text-center mb-2">新規登録</h2>
         <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="email"
-          >
-            メールアドレス
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="メールアドレス"
-          />
-        </div>
-        <div className="mb-6">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="password"
-          >
-            パスワード
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="パスワード"
-          />
-        </div>
-        <div className="mb-6">
-          <button
-            className="bg-yellow-200 hover:bg-yellow-300 text-gray-700 font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
-            type="button"
-            onClick={handleLoginWithEmail}
-          >
-            メールでログイン
-          </button>
-        </div>
-        <div className="mb-6">
-          <button
-            className="bg-yellow-200 hover:bg-yellow-300 text-gray-700 font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
-            type="button"
-            onClick={handleLoginWithGoogle}
-          >
-            Googleアカウントでログイン
-          </button>
-        </div>
-        {/* New User Registration */}
-        <h1 className="text-2xl font-bold text-center mb-4">新規登録</h1>
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="newEmail"
-          >
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newEmail">
             新規メールアドレス
           </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="newEmail"
-            type="email"
-            value={newEmail}
-            onChange={(e) => setNewEmail(e.target.value)}
-            placeholder="新規メールアドレス"
-          />
+          <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="newEmail" type="email" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} placeholder="新規メールアドレス" />
         </div>
         <div className="mb-6">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="newPassword"
-          >
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="newPassword">
             新規パスワード
           </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="newPassword"
-            type="password"
-            value={newPassword}
-            onChange={(e) => setNewPassword(e.target.value)}
-            placeholder="新規パスワード"
-          />
+          <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="newPassword" type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} placeholder="新規パスワード" />
+        </div>
+        <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
+          type="button" onClick={handleSignUp}>
+          新規登録
+        </button>
+      </div>
+
+      {/* BOX2: ログイン */}
+      <div className="w-full max-w-xl p-8 bg-white rounded-lg shadow-md border-2 border-dotted border-yellow-500">
+        <h1 className="text-2xl font-bold text-center mb-2">アカウントをお持ちの方はこちら</h1>
+        <h2 className="text-xl font-bold text-center mb-2">ログイン</h2>
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="email">
+            メールアドレス
+          </label>
+          <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="メールアドレス" />
         </div>
         <div className="mb-6">
-          <button
-            className="bg-yellow-200 hover:bg-yellow-300 text-gray-700 font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
-            type="button"
-            onClick={handleSignUp}
-          >
-            新規登録
-          </button>
+          <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="password">
+            パスワード
+          </label>
+          <input className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+            id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="パスワード" />
         </div>
-        <div className="flex justify-center">
-          {/* <button
-            className=" bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            type="button"
-            onClick={() => router.push("/")}
-          >
-            TOPへ戻る
-          </button> */}
-        </div>
-        <p className="text-center text-gray-500 text-xs">
-          &copy;2024 Bu.ra.ri BC7th. All rights reserved.
-        </p>
+        <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline mb-4"
+          type="button" onClick={handleLoginWithEmail}>
+          メールでログイン
+        </button>
+      
+        <button className="bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 w-full rounded focus:outline-none focus:shadow-outline"
+          type="button" onClick={handleLoginWithGoogle}>
+          Googleアカウントでログイン
+        </button>
       </div>
+      
+      <p className="text-center text-gray-500 text-xs mt-6">
+        &copy;2024 Bu.ra.ri BC7th. All rights reserved.
+      </p>
     </div>
   );
-};
+}
 
 export default LoginPage;

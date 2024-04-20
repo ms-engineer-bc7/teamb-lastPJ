@@ -17,7 +17,7 @@ import logging
 import requests
 import httpx
 import stripe #stripeをインポート
-from .my_prisma import save_recommendation
+# from .my_prisma import save_recommendation
 
 # 環境変数の読み込み
 load_dotenv()
@@ -102,12 +102,12 @@ class PlaceQuery(BaseModel):
 class ResponseModel(BaseModel):
     message: str
 
-class RecommendationModel(BaseModel):
-    user_id: int = Field(..., description="ユーザーの識別ID")
-    company: str = Field(..., description="訪問タイプ")
-    activity_type: str = Field(..., description="どのように時間を過ごすか")
-    recommend_station: str = Field(..., description="推薦された駅の名前")
-    recommend_details: str = Field(..., description="推薦の詳細情報")
+# class RecommendationModel(BaseModel):
+#     user_id: int = Field(..., description="ユーザーの識別ID")
+#     company: str = Field(..., description="訪問タイプ")
+#     activity_type: str = Field(..., description="どのように時間を過ごすか")
+#     recommend_station: str = Field(..., description="推薦された駅の名前")
+#     recommend_details: str = Field(..., description="推薦の詳細情報")
 
 # ------ランダムに取得した駅の名前を基にAPIが周辺情報を取得しLLMに投げその結果を返す------
 @app.post("/places/")
@@ -158,12 +158,10 @@ async def get_places(query: PlaceQuery):
             prompt = PromptTemplate(
             input_variables=["knowledge"],
             template=f"""
-                おすすめの駅は{query.station_name}駅周辺。
-                誰と一緒に行くか{visit_type_description}。
-                過ごし方は{how_to_spend_time_description}。
-                上記の内容で、土日に出かけたいと考えています。休日の適切な過ごし方を３～４つ提案してください。
-                {query.station_name}駅から徒歩圏内の場所や飲食店を以下の周辺情報から選んだ上で
-                その具体的な名称を提示して改行を用いて優しく喋り口調で教えてください。
+                土日に{query.station_name}駅周辺の徒歩で行ける範囲にサクッと{visit_type_description}外出し、
+                {how_to_spend_time_description}時間を過ごしたいと考えています。
+                最適な、休日の過ごし方を{knowledge}から３～４つピックアップし、行く相手に合わせた場所の提案をして欲しい。
+                場所の名称を出して、癒されるような優しい日本語で提案してほしい。
                 周辺情報: {knowledge}
         """,
         )
@@ -176,14 +174,14 @@ async def get_places(query: PlaceQuery):
         response = ResponseModel(message=llm_response)
 
         # 推薦情報を作成しデータベースに保存 <--- 新たに追加した部分
-        recommendation = RecommendationModel(
-            user_id=1,
-            company=query.visit_type,
-            activity_type=query.how_to_spend_time,
-            recommend_station=query.station_name,
-            recommend_details=response.message
-            )
-        await save_recommendation(recommendation)
+        # recommendation = RecommendationModel(
+        #     user_id=1,
+        #     company=query.visit_type,
+        #     activity_type=query.how_to_spend_time,
+        #     recommend_station=query.station_name,
+        #     recommend_details=response.message
+        #     )
+        # await save_recommendation(recommendation)
 
         return response
     

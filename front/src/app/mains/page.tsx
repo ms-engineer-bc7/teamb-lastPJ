@@ -7,13 +7,6 @@ import Link from "next/link";
 import { auth } from "../../../firebase"; // Firebaseの設定ファイルをインポート
 import { User, onAuthStateChanged } from 'firebase/auth';
 
-
-declare global {
-  interface Window {
-    initMap: () => void;
-  }
-}
-
 interface StationInfo {
   name: string;
   location: {
@@ -58,7 +51,7 @@ interface StationInfo {
   const [howToSpendTime, setHowToSpendTime] = useState<string>('');
   const [stationInfo, setStationInfo] = useState<StationInfo | null>(null);
   const [recommendations, setRecommendations] = useState<string>('');
-  const [error, setError] = useState<string>('');
+  const [error, setError] = useState<string | JSX.Element>('');
   const [loadMap, setLoadMap] = useState<boolean>(false);
   const [recommendationCount, setRecommendationCount] = useState(0);
   const router = useRouter();
@@ -66,6 +59,8 @@ interface StationInfo {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   
   useEffect(() => {
+    let map: google.maps.Map | undefined;
+
     const initMap = () => {
       if (stationInfo) {
         const { lat, lng } = stationInfo.location;
@@ -93,8 +88,11 @@ interface StationInfo {
         const script = document.createElement('script');
         script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
         script.async = true;
-        window.initMap = window.initMap || initMap;
+        // window.initMap = window.initMap;
+        script.onload = initMap;
         document.body.appendChild(script);
+      } else {
+        initMap();
       }
     };
   
@@ -106,7 +104,10 @@ interface StationInfo {
   
     return () => {
       // Clean up event listener when component unmounts
-      window.initMap = undefined;
+      if (map) {
+        map.unbindAll();
+        map = undefined;
+      }
     };
   }, [stationInfo]); // Dependencies array ensures this effect runs only when stationInfo changes
   
@@ -163,14 +164,34 @@ interface StationInfo {
         // ③freeユーザーの場合、レスポンスを100文字までに制限
         if (message.length > 100) {
           setRecommendations(message.substring(0, 100) + '...');
-          setError('無料ユーザーは100文字までのおすすめ情報が表示されます。続きは無料メンバー登録もしくは有料プランにて。');
+          setError(
+            <span>
+            おすすめプランを全て見るには{' '}
+            <Link href="/logins" className="text-blue-500 hover:underline">
+              無料メンバー登録
+            </Link>
+            ・
+            <Link href="/stripes" className="text-blue-500 hover:underline">
+              有料プランにアップグレード
+            </Link>{' '}
+            してください。
+          </span>
+          );
         } else {
           setRecommendations(message);
         }
       } else if (userType === 'member') {
         // ④memberユーザーの場合、3回までレスポンスを使用可能
         if (recommendationCount >= 3) {
-          setError('無料メンバーは3回までおすすめ情報が表示されます。それ以降は有料プランにアップグレードしてください。');
+          setError(
+          <span>
+              3回目以降は{' '}
+            <Link href="/stripes" className="text-blue-500 hover:underline">
+              有料プランにアップグレード
+            </Link>{' '}
+              してください
+          </span>
+          );
           setRecommendations('');
         } else {
           setRecommendations(message);
@@ -191,12 +212,22 @@ interface StationInfo {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-        <div className="bg-orange-400 text-white p-4 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4">
-                <h1 className="text-lg">Welcome to ... 
-                {/* {user && (
-                    <p>User: {user.displayName || "User"}!</p>  // ユーザー名を表示
-                )} */}
-                <span>{user ? user.displayName + "さん" || "User" : "Guestさん"}</span></h1>
+      <div className="ml-4">
+          {userType === 'premium' && (
+            <div className="text-pink-500">
+              有料メンバーは、このアプリを制限なく利用できます
+            </div>
+          )}
+          {userType === 'member' && (
+            <div className="text-pink-500">
+              ログインメンバーは、３回までこのアプリの全ての機能がお試し頂けます
+            </div>
+          )}
+          {userType === 'free' && (
+            <div className="text-pink-500">
+              無料ユーザーは、<Link href="/logins">ログイン</Link>していない場合に制限があります
+            </div>
+          )}
         </div>
       <div className="mb-4">
         <input
@@ -212,6 +243,7 @@ interface StationInfo {
         >
           おすすめの駅を探す
         </button>
+        
       </div>
       <div className="flex -mx-2">
         {stationInfo && (
@@ -231,9 +263,11 @@ interface StationInfo {
                 onChange={e => setVisitType(e.target.value)}
               >
                 <option value="">選択してください</option>
-                <option value="alone">一人</option>
-                <option value="family">子供と一緒</option>
-                <option value="friends">カップル</option>
+                <option value="alone">一人で</option>
+                <option value="children">子供と</option>
+                <option value="couple">カップルで</option>
+                <option value="family">家族と</option>
+                <option value="frends">友達と</option>
               </select>
               <label className="block">どんな時間を過ごしたいですか？</label>
               <select
@@ -242,9 +276,9 @@ interface StationInfo {
                 onChange={e => setHowToSpendTime(e.target.value)}
               >
                 <option value="">選択してください</option>
-                <option value="leisurely">のんびりとしたい</option>
-                <option value="active">アクティブに</option>
-                <option value="brief">少し限られた</option>
+                <option value="leisurely">のんびりとした</option>
+                <option value="active">アクティブな</option>
+                <option value="brief">少しの限られた</option>
               </select>
               <button
                 className="bg-orange-400 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
@@ -268,27 +302,9 @@ interface StationInfo {
         </div>
       )}
       <div>
-      {userType === 'premium' && (
-        <div className="premium-content mt-4 p-4 border-2 border-gray-300 rounded-lg shadow-lg bg-light-blue-50">---あなたは有料メンバーです---
-            Show premium content for paid members<br />
-            このアプリを制限なく利用できます。<br />
-        </div>
-      )}
-      {userType === 'member' && (
-        <div className="premium-content mt-4 p-4 border-2 border-gray-300 rounded-lg shadow-lg bg-light-blue-50">---あなたは無料メンバーです---
-        Show limited content for free members<br />
-        ３回までこのアプリの全ての機能がお試し頂けます。回数の制限の解除には有料メンバーになる必要があります。
-        </div>
-      )}
-      {userType === 'free' && (
-        <div className="premium-content mt-4 p-4 border-2 border-gray-300 rounded-lg shadow-lg bg-light-blue-50">---あなたは無料ユーザーです---
-        Show basic content for non-logged users<br />
-        ログインしていない場合は制限があります。無料ログインで３回までこのアプリをお試し頂けます。
-        </div>
-      )}
       </div>
-      <div className="error-message mt-4 p-4 border-2 border-gray-300 rounded-lg shadow-lg bg-ight-blue-50">
-      {error && <p className="text-red-500 mt-4">気に入って頂けましたか？: {error}</p>}
+      <div className="error-message mt-4 p-4 bg-ight-blue-5 rounded-lg ">
+      {error && <p className="text-red-500 mt-4">気に入りましたか？: {error}</p>}
       </div>
     </div>
   );
