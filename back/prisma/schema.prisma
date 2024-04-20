@@ -14,7 +14,7 @@ model User {
   user_id   Int           @id @default(autoincrement())
   email     String        @unique
   member    String
-  created_at DateTime
+  created_at DateTime     @default(now())
   Recommendation Recommendation[]
 
   @@map("users")
@@ -27,7 +27,7 @@ model Recommendation {
   activity_type    String
   recommend_station String
   recommend_details String
-  created_at       DateTime
+  created_at       DateTime  @default(now())
   User             User     @relation(fields: [user_id], references: [user_id])
 
   @@map("recommendations")
