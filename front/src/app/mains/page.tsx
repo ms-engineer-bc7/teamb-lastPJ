@@ -191,7 +191,7 @@ interface StationInfo {
 
   return (
     <div className="max-w-4xl mx-auto p-4">
-        <div className="bg-blue-500 text-white p-4 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4">
+        <div className="bg-orange-400 text-white p-4 font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4">
                 <h1 className="text-lg">Welcome to ... 
                 {/* {user && (
                     <p>User: {user.displayName || "User"}!</p>  // ユーザー名を表示
@@ -207,7 +207,7 @@ interface StationInfo {
           className="input bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal"
         />
         <button
-          className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4"
+          className="bg-orange-400 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mt-4"
           onClick={fetchStation}
         >
           おすすめの駅を探す
@@ -247,7 +247,7 @@ interface StationInfo {
                 <option value="brief">少し限られた</option>
               </select>
               <button
-                className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                className="bg-orange-400 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                 onClick={handleRecommendationsClick}
               >
                 おすすめプランを提案
@@ -257,7 +257,7 @@ interface StationInfo {
         )}
         {loadMap && (
           <div className="flex-1 px-2">
-            <div id="map" className="w-full h-96 border-2 border-gray-300 mt-4 rounded-lg shadow-lg"></div>
+            <div id="map" className="w-full h-96 border-2 border-gray-300 mt-1 rounded-lg shadow-lg"></div>
           </div>
         )}
       </div>
