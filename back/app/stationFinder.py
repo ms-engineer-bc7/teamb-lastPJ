@@ -39,7 +39,7 @@ class GeocodeResponse(BaseModel):
     nearest_station: Optional[StationInfo]
     nearby_stations: List[StationInfo]
 
-async def find_station(address: str) -> GeocodeResponse:
+async def find_station(address: str, radius: int = 2000) -> GeocodeResponse:
     async with httpx.AsyncClient() as client:
         try:
             geocode_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&language=ja&key={GOOGLE_MAPS_API_KEY}"
@@ -55,7 +55,7 @@ async def find_station(address: str) -> GeocodeResponse:
             longitude = geocode_data["results"][0]["geometry"]["location"]["lng"]
             formatted_address = geocode_data["results"][0]["formatted_address"]
 
-            places_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={latitude},{longitude}&radius=1500&type=train_station&language=ja&key={GOOGLE_MAPS_API_KEY}"
+            places_url = f"https://maps.googleapis.com/maps/api/place/nearbysearch/json?location={latitude},{longitude}&radius={radius}&type=train_station&language=ja&key={GOOGLE_MAPS_API_KEY}"
             places_response = await client.get(places_url)
             places_data = places_response.json()
             
