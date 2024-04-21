@@ -6,6 +6,7 @@ import Script from 'next/script';
 import Link from "next/link";
 import { auth } from "../../../firebase"; // Firebaseの設定ファイルをインポート
 import { User, onAuthStateChanged } from 'firebase/auth';
+import { getStripeCustomerId } from '../utils/stripe';
 
 interface StationInfo {
   name: string;
@@ -54,9 +55,7 @@ interface StationInfo {
   const [error, setError] = useState<string | JSX.Element>('');
   const [loadMap, setLoadMap] = useState<boolean>(false);
   const [recommendationCount, setRecommendationCount] = useState(0);
-  const router = useRouter();
   const { user, userType } = useAuth(); // useAuth フックを使用
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   
   useEffect(() => {
     let map: google.maps.Map | undefined;
@@ -147,6 +146,9 @@ interface StationInfo {
 
     try {
       const { lat, lng } = stationInfo.location;
+      // 追加
+      const stripeCustomerId: string | null = await getStripeCustomerId(user?.uid || '');
+
       const response = await axios.post('http://localhost:8000/places/', {
         language: 'ja',
         station_name: stationInfo.name,
@@ -154,8 +156,10 @@ interface StationInfo {
         radius: 2000,
         latitude: lat,
         longitude: lng,
-        how_to_spend_time: howToSpendTime
+        how_to_spend_time: howToSpendTime,
+        stripe_customer_id: stripeCustomerId,
       });
+
       console.log('提案レスポンス:',response.data);
       const message = response.data.message;
       console.log('提案レスポンスメッセージ:',message);
