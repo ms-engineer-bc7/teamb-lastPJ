@@ -135,7 +135,7 @@ interface StationInfo {
       setStationInfo(null);
     }
   };
-
+  // console.log('Random station response:', setStationInfo); // 追加：ランダムに選ばれた駅のレスポンスをログに出力
 
   const handleRecommendationsClick = async () => {
     if (!stationInfo) {
@@ -263,11 +263,11 @@ interface StationInfo {
                 onChange={e => setVisitType(e.target.value)}
               >
                 <option value="">選択してください</option>
-                <option value="alone">一人で</option>
-                <option value="children">子供と</option>
-                <option value="couple">カップルで</option>
-                <option value="family">家族と</option>
-                <option value="frends">友達と</option>
+                <option value="一人で">一人で</option>
+                <option value="子連れで">子どもと</option>
+                <option value="カップルで">カップルで</option>
+                <option value="家族と">家族と</option>
+                <option value="友達と">友達と</option>
               </select>
               <label className="block">どんな時間を過ごしたいですか？</label>
               <select
@@ -276,9 +276,9 @@ interface StationInfo {
                 onChange={e => setHowToSpendTime(e.target.value)}
               >
                 <option value="">選択してください</option>
-                <option value="leisurely">のんびりとした</option>
-                <option value="active">アクティブな</option>
-                <option value="brief">少しの限られた</option>
+                <option value="のんびりとした">のんびり</option>
+                <option value="アクティブに">アクティブ</option>
+                <option value="少しの限られた">サクッと</option>
               </select>
               <button
                 className="bg-orange-400 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
