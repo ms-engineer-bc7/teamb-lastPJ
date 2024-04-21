@@ -34,8 +34,8 @@ stripe.api_key = stripe_secret_key
 logging.basicConfig(level=logging.DEBUG)  #コンソールに出力
 logger = logging.getLogger(__name__)
 
-# OpenAIのインスタンスを作成　生成されるテキストの予測可能性
-llm = OpenAI(temperature=0.9, api_key=os.getenv("OPENAI_API_KEY"))
+# OpenAIのインスタンスを作成　生成されるテキストの予測可能性 値を下げるとより確定的になる
+llm = OpenAI(temperature=0.7, api_key=os.getenv("OPENAI_API_KEY"))
 
 # 本当はベクターDBとか PDF などから動的に取得するべき。
 knowledge = """
@@ -74,19 +74,34 @@ async def get_random_station(address: str) -> dict:
         # find_station関数を呼び出して駅情報を取得
         response = await find_station(address)
         logging.debug(f"find_station関数を呼び出して駅情報を取得: {response}")
-        # nearby_stationsからランダムに駅を選択
-        random_station = random.choice(response.nearby_stations)
-        logging.debug(f"nearby_stationsからランダムに駅を選択: {random_station}")
+
+        if response.nearby_stations:
+           # nearby_stationsからランダムに駅を選択
+           random_station = random.choice(response.nearby_stations)
+           logging.debug(f"nearby_stationsからランダムに駅を選択: {random_station}")
         
-        # 選択されたランダムな駅と位置情報を含む辞書を返す
-        station_response = StationResponse(
-            random_station=random_station.name,
-            latitude=random_station.location.lat,
-            longitude=random_station.location.lng
-        )
-        logging.debug(f"選択されたランダムな駅と位置情報を含む辞書を返す: {station_response}")
+           # 選択されたランダムな駅と位置情報を含む辞書を返す
+           station_response = StationResponse(
+               random_station=random_station.name,
+               latitude=random_station.location.lat,
+               longitude=random_station.location.lng
+           )
+           logging.debug(f"選択されたランダムな駅と位置情報を含む辞書を返す: {station_response}")
         
-        return JSONResponse(content=station_response.dict())
+           return JSONResponse(content=station_response.dict())
+     
+        else:
+            # nearby_stationsが空の場合は最寄り駅の情報を返す
+            nearest_station = response.nearest_station
+            station_response = StationResponse(
+                random_station=nearest_station.name,
+                latitude=nearest_station.location.lat,
+                longitude=nearest_station.location.lng
+            )
+            logging.debug(f"最寄り駅の情報を返す: {station_response}")
+            
+            return JSONResponse(content=station_response.dict())
+
     except HTTPException as e:
         return {"error": e.detail}
 
@@ -117,53 +132,69 @@ async def get_places(query: PlaceQuery):
         # APIリクエスト設定
         google_places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
         logging.debug(f"google_places_url: {google_places_url}")
-        params = {
-            'key': GOOGLE_MAPS_API_KEY,
-            'location': f"{query.latitude},{query.longitude}",  # フロントエンドから受け取った緯度経度
-            'radius': query.radius,
-            'language': query.language,
-        }
-        logging.debug(f"APIに渡すparamsの内容: {params}")
+        
+        # 追加
+        types = ["park", "restaurant", "cafe", "amusement_park", "tourist_attraction", "shopping_mall"]
+        places_data_results = []
 
+        async with httpx.AsyncClient() as client:
+            for place_type in types:
+                params = {
+                    'key': GOOGLE_MAPS_API_KEY,
+                    'location': f"{query.latitude},{query.longitude}",  # フロントエンドから受け取った緯度経度
+                    'radius': query.radius,
+                    # 追加
+                    'type': place_type,
+                    'language': query.language,
+                }
+
+                logging.debug(f"APIに渡すparamsの内容: {params}")
+
+                # async with httpx.AsyncClient() as client:
+                resp = await client.get(google_places_url, params=params)
+                logging.debug(f"Google Places API Request URL: {resp.url}")
+                logging.debug(f"Google Places API Response Status: {resp.status_code}")
+
+                if resp.status_code == 200:
+                   logger.error(f"Google Places APIエラー: {resp.text}")
+                   # LLMにデータを渡し、処理を行う部分を実装。
+                   # ここではGoogle Places APIから得たデータを返す。
+                   places_data = resp.json()
+                   logging.debug(f"Google Places APIから得たデータの中身JSON: {places_data}")
+                   places_data_results.extend(places_data.get('results', []))      
+                else:
+                    logging.error(f"API Error for {place_type}: {resp.text}")
+                    continue  # エラーがあればログに記録して次のタイプへ
+                # エラークライアントに返す
+                # raise HTTPException(status_code=resp.status_code, detail=resp.text)  
+
+        # 取得した場所の名前のリストを作る　places_namesがリスト
+        places_names = [place['name'] for place in places_data.get('results', [])]
+        logging.debug(f"Google Places APIから得たデータをリスト化: {places_names}")
+        
+            # レスポンスにOpenAIを利用して加工を行う　取得データをLLMに投げている部分
+            # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
+        knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
+        logging.debug(f"LLM に渡すためにAPIから抽出された内容=knowledge: {knowledge}")
+        
         visit_type_description = f"訪問タイプ: {query.visit_type}"
         logging.debug(f"訪問タイプ渡っているか: {visit_type_description}")
         how_to_spend_time_description = f"どんな時間を過ごす？: {query.how_to_spend_time}"
         logging.debug(f"どんな時間を過ごすか: {how_to_spend_time_description}")
 
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(google_places_url, params=params)
-            logging.debug(f"Google Places API Request URL: {resp.url}")
-            logging.debug(f"Google Places API Response Status: {resp.status_code}")
-
-            if resp.status_code != 200:
-                logger.error(f"Google Places APIエラー: {resp.text}")
-                # エラークライアントに返す
-                raise HTTPException(status_code=resp.status_code, detail=resp.text)
-
-            # LLMにデータを渡し、処理を行う部分を実装。
-            # ここではGoogle Places APIから得たデータを返す。
-            places_data = resp.json()
-            logging.debug(f"Google Places APIから得たデータの中身JSON: {places_data}")
-        
-            # 取得した場所の名前のリストを作る　places_namesがリスト
-            places_names = [place['name'] for place in places_data.get('results', [])]
-            logging.debug(f"Google Places APIから得たデータをリスト化: {places_names}")
-        
-            # レスポンスにOpenAIを利用して加工を行う　取得データをLLMに投げている部分
-            # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
-            knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
-            logging.debug(f"LLM に渡すためにAPIから抽出された内容=knowledge: {knowledge}")
-        
-            # {knowledge} でリスト化
-            prompt = PromptTemplate(
+        # {knowledge} でリスト化
+        prompt = PromptTemplate(
             input_variables=["knowledge"],
             template=f"""
-                土日に{query.station_name}駅周辺の徒歩で行ける範囲にサクッと{visit_type_description}外出し、
-                {how_to_spend_time_description}時間を過ごしたいと考えています。
-                最適な、休日の過ごし方を{knowledge}から３～４つピックアップし、行く相手に合わせた場所の提案をして欲しい。
-                場所の名称を出して、癒されるような優しい日本語で提案してほしい。
+                土日に{query.station_name}駅周辺の徒歩で行ける範囲に{visit_type_description}外出して
+                {how_to_spend_time_description}時間を過ごしたいと考えている。
+                最適な、休日の過ごし方を、下記の周辺情報から選び、
+                ３～４つピックアップした上で行く相手に合わせた場所の提案をして欲しい。
+                また、提案する時の口調は、優しい感じで、「休日の過ごし方について提案させていただきますね。まずは～」
+                のように話し始めて下さい。
+                回答は日本語のみでお願いします。コードや変数、その他の言語は一切含めないでください。
                 周辺情報: {knowledge}
-        """,
+            """,
         )
         
         # OpenAIにプロンプトを送り、レスポンスを得る　res=angChain LLMからの応答 指定したシナリオに基づいた内容を含む
