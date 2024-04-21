@@ -1,0 +1,5 @@
+2024-04-20 20:04:32,692 - INFO - message='Request to Stripe api' method=get url=https://api.stripe.com/v1/subscriptions?limit=10
+2024-04-20 20:04:33,101 - INFO - message='Stripe API response' path=https://api.stripe.com/v1/subscriptions?limit=10 response_code=200
+2024-04-20 20:04:33,109 - INFO - ID: sub_1P7BcLCpbVKijddQIQL5yB8E, Customer: cus_Px5nhSOOq63nrh, Status: active
+2024-04-20 20:04:33,111 - INFO - ID: sub_1P7BMKCpbVKijddQwfi2xoCW, Customer: cus_Px5XpSHti94JkR, Status: active
+2024-04-20 20:04:33,111 - INFO - ID: sub_1P6BwYCpbVKijddQ7CcRECz7, Customer: cus_Pw44sk3UD61gLz, Status: active
