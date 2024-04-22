@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, APIRouter, Query
+from fastapi import FastAPI, HTTPException, APIRouter, Query, Request
 from fastapi.responses import JSONResponse
 import os
 from dotenv import load_dotenv
@@ -10,17 +10,30 @@ from fastapi.middleware.cors import CORSMiddleware #CORS設定 4/10のりぴ
 from .routes.directions import router as directions_router #4/11えりな
 from .geocode import find_nearest_station, GeocodeResponse #4/11ゆか
 from .stationFinder import find_station, GeocodeResponse
+# from fastapi.security import HTTPBearer
 from typing import List
-
 import random #4/11ゆか
 import logging
 import requests
 import httpx
 import stripe #stripeをインポート
+# import asyncpg
 from .my_prisma import save_recommendation
 
 # 環境変数の読み込み
 load_dotenv()
+
+app = FastAPI()
+router = APIRouter()
+# security = HTTPBearer()
+
+# @app.middleware("http")
+# async def csrf_middleware(request: Request, call_next):
+#     csrf_token = request.headers.get("X-CSRF-Token")
+#     if not csrf_token:
+#         raise HTTPException(status_code=400, detail="CSRF token missing")
+#     response = await call_next(request)
+#     return response
 
 # 必要な環境変数を .env ファイルから読み込む
 GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
@@ -28,6 +41,10 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 print("OPENAI_API_KEY:", OPENAI_API_KEY)
 stripe_secret_key = os.getenv('STRIPE_SECRET_KEY')
 stripe.api_key = stripe_secret_key
+# DATABASE_URL = os.getenv("DATABASE_URL")
+
+# データベース接続の初期化
+# conn: asyncpg.Connection = None
 
 # ロギングの設定
 # logging.basicConfig(filename='/logs/app.log', level=logging.DEBUG) # ファイルに出力
@@ -42,9 +59,6 @@ knowledge = """
  
 """
 
-app = FastAPI()
-router = APIRouter()
-
 # CORSミドルウェアの設定 4/10のりぴ
 app.add_middleware(
     CORSMiddleware,
@@ -57,6 +71,70 @@ app.add_middleware(
 @app.get("/")
 def read_root():
     return {"Hello": "BuRaRi-さんぽっと-"}
+
+# @app.on_event("startup")
+# async def startup_event():
+#     global conn
+#     conn = await asyncpg.connect(DATABASE_URL)
+
+# @app.on_event("shutdown")
+# async def shutdown_event():
+#     global conn
+#     await conn.close() 
+
+# @app.get("/csrf-token")
+# def get_csrf_token(request: Request):
+#     return {"csrf_token": request.session.get("csrf_token")}   
+
+# @app.post("/webhook")
+# async def stripe_webhook(request: Request):
+#     payload = await request.body()
+#     sig_header = request.headers['stripe-signature']
+#     endpoint_secret = os.getenv("STRIPE_ENDPOINT_SECRET")
+
+#     try:
+#         event = stripe.Webhook.construct_event(
+#             payload, sig_header, endpoint_secret
+#         )
+#     except ValueError:
+#         raise HTTPException(status_code=400, detail="Invalid payload")
+#     except stripe.error.SignatureVerificationError:
+#         raise HTTPException(status_code=400, detail="Invalid signature")
+    
+#     # イベント処理
+#     if event['type'] == 'customer.subscription.updated':
+#         subscription = event['data']['object']
+#         await handle_subscription_update(subscription)
+
+#     return JSONResponse({'status': 'success'})
+
+# async def handle_subscription_update(subscription):
+#     query = """
+#     INSERT INTO subscriptions (stripe_id, customer_id, status, created_at, updated_at)
+#     VALUES ($1, $2, $3, NOW(), NOW())
+#     ON CONFLICT (stripe_id) DO UPDATE
+#     SET
+#         customer_id = EXCLUDED.customer_id,
+#         status = EXCLUDED.status,
+#         updated_at = NOW();
+#     """
+#     await conn.execute(
+
+#         query,
+#         subscription['id'],  # stripe_id
+#         subscription['customer'],  # customer_id
+#         subscription['status']  # subscription status
+#     )
+
+# @app.get("/user-status/{user_id}")
+# async def get_user_status(user_id: int):
+#     query = "SELECT status FROM users WHERE id = $1"
+#     row = await conn.fetchrow(query, user_id)
+#     if row:
+#         return {'status': row['status']}
+#     else:
+#         raise HTTPException(status_code=404, detail="User not found")
+
 
 class ResponseModel(BaseModel):#追加　4/9のりぴ
       message: str
@@ -129,6 +207,20 @@ class RecommendationModel(BaseModel):
 async def get_places(query: PlaceQuery):
     logging.debug(f"/place/データを含むリクエストを受信しました: {query.dict()}")
     try:
+        # Stripeの顧客IDを取得
+        # stripe_customer_id = query.stripe_customer_id
+
+        # Stripeの顧客情報を取得
+        # customer = stripe.Customer.retrieve(stripe_customer_id)
+
+        # 顧客のサブスクリプションを確認
+        # subscriptions = stripe.Subscription.list(customer=stripe_customer_id, status='active')
+
+        # if not subscriptions.data:
+            # サブスクリプションがない場合、制限付きのレスポンスを返す
+            # limited_response = ResponseModel(message=llm_response[:100] + "...")
+            # return limited_response
+
         # APIリクエスト設定
         google_places_url = "https://maps.googleapis.com/maps/api/place/nearbysearch/json"
         logging.debug(f"google_places_url: {google_places_url}")

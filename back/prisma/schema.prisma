@@ -32,3 +32,11 @@ model Recommendation {
 
   @@map("recommendations")
 }
+
+model Subscription {
+  stripe_id   String   @id
+  customer_id String
+  status      String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now())
+}
