@@ -32,7 +32,7 @@ git clone https://github.com/ms-engineer-bc7/teamb-lastPJ.git
 
 ## 技術選定と選定理由
 ### フロントエンド：<br>
-　Next.js app router（授業で使用し短期の開発に置いて学習コストが低い。）<br>
+ Next.js app router（授業で使用し短期の開発に置いて学習コストが低い。）<br>
  Typescript(型安全性が高まり、保守性が向上できる。)<br>
 ### バックエンド：
 FastAPI （スタートアップが速く、少ないコードでWebAPIを構築できる。非同期処理に対応している。）<br>
