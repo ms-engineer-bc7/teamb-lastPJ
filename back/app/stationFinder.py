@@ -42,7 +42,7 @@ class GeocodeResponse(BaseModel):
 async def find_station(address: str, radius: int = 2000) -> GeocodeResponse:
     async with httpx.AsyncClient() as client:
         try:
-            geocode_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&language=ja&key={GOOGLE_MAPS_API_KEY}"
+            geocode_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&radius={radius}&language=ja&key={GOOGLE_MAPS_API_KEY}"
             geocode_response = await client.get(geocode_url)
             geocode_data = geocode_response.json()
             

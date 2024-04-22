@@ -2,9 +2,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import titleLogo from "../../public/titleLogo1.png";
-import React from "react";
+
 
 export default function Home(): JSX.Element {
+  
   return (
       <div className="min-h-screen flex flex-col items-center">
        <div className="mt-20">
