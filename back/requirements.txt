@@ -12,3 +12,4 @@ googlemaps #追加
 geopy #4/11追加
 geocoder
 prisma>=0.12.0 #4/18追加
+python-multipart #4/22追加
