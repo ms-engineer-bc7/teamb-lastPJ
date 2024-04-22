@@ -6,6 +6,8 @@ import Script from 'next/script';
 import Link from "next/link";
 import { auth } from "../../../firebase"; // Firebaseの設定ファイルをインポート
 import { User, onAuthStateChanged } from 'firebase/auth';
+// import { getStripeCustomerId } from '../utils/stripe';
+// import { getCSRFToken } from '../lib/csrf';
 
 interface StationInfo {
   name: string;
@@ -16,33 +18,33 @@ interface StationInfo {
 }
   
     // ユーザーの認証状態と情報を管理するカスタムフック
-    const useAuth = () => {
-        const [user, setUser] = useState<User | null>(null);
-        const [userType, setUserType] = useState(''); // 'free', 'member', or 'premium'
+  const useAuth = () => {
+      const [user, setUser] = useState<User | null>(null);
+      const [userType, setUserType] = useState(''); // 'free', 'member', or 'premium'
 
-        useEffect(() => {
-            const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
-                if (authUser) {
-                    setUser(authUser); // ユーザー情報をセット
-                    const idTokenResult = await authUser.getIdTokenResult();
-                    const subscriptionType = idTokenResult.claims.subscriptionType; // カスタムクレームを使用
-    
-                    if (subscriptionType === 'paid') {
-                        setUserType('premium');
-                    } else {
-                        setUserType('member');
-                    }
-                } else {
-                    setUser(null);
-                    setUserType('free');
-                }
-            });
-    
-            return () => unsubscribe();
-        }, []);
-    
-        return { user, userType };
-    };
+      useEffect(() => {
+          const unsubscribe = onAuthStateChanged(auth, async (authUser) => {
+              if (authUser) {
+                  setUser(authUser); // ユーザー情報をセット
+                  const idTokenResult = await authUser.getIdTokenResult();
+                  const subscriptionType = idTokenResult.claims.subscriptionType; // カスタムクレームを使用
+  
+                  if (subscriptionType === 'paid') {
+                      setUserType('premium');
+                  } else {
+                      setUserType('member');
+                  }
+              } else {
+                  setUser(null);
+                  setUserType('free');
+              }
+          });
+  
+          return () => unsubscribe();
+      }, []);
+  
+      return { user, userType };
+  };
 
 
   const Home2: React.FC = () => {
@@ -54,10 +56,42 @@ interface StationInfo {
   const [error, setError] = useState<string | JSX.Element>('');
   const [loadMap, setLoadMap] = useState<boolean>(false);
   const [recommendationCount, setRecommendationCount] = useState(0);
-  const router = useRouter();
   const { user, userType } = useAuth(); // useAuth フックを使用
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  // const [csrfToken, setCSRFToken] = useState('');
   
+  // useEffect(() => {
+  //   const fetchCSRFToken = async () => {
+  //     const token = getCSRFToken();
+  //     if (token) {
+  //       setCSRFToken(token);
+  //     } else {
+  //       const fetchedToken = await fetchCSRFToken();
+  //       if (fetchedToken !== null) {
+  //         setCSRFToken(fetchedToken);
+  //       }
+  //     }
+  //   };
+  
+  //   fetchCSRFToken();
+  // }, []);
+  
+
+  // const makeAPIRequest = async () => {
+  //   const response = await fetch('http://localhost:8000/api/endpoint', {
+  //     method: 'POST',
+  //     headers: {
+  //       'Content-Type': 'application/json',
+  //       'X-CSRFToken': csrfToken,
+  //     },
+  //     body: JSON.stringify({ /* リクエストボディ */ }),
+  //   });
+
+  //   // レスポンスの処理
+  // };
+
   useEffect(() => {
     let map: google.maps.Map | undefined;
 
@@ -142,11 +176,16 @@ interface StationInfo {
       setError('先に駅を選択してください');
       return;
     }
-  
+    
     console.log(`Requesting data for address: ${stationName}`);  // デバッグ情報の出力
+    
+    setIsLoading(true); // 追加
 
     try {
       const { lat, lng } = stationInfo.location;
+      // 追加
+      // const stripeCustomerId: string | null = await getStripeCustomerId(user?.uid || '');
+
       const response = await axios.post('http://localhost:8000/places/', {
         language: 'ja',
         station_name: stationInfo.name,
@@ -155,7 +194,12 @@ interface StationInfo {
         latitude: lat,
         longitude: lng,
         how_to_spend_time: howToSpendTime
+        // stripe_customer_id: stripeCustomerId,
       });
+
+      // ここで makeAPIRequest 関数を呼び出します
+      // await makeAPIRequest();
+
       console.log('提案レスポンス:',response.data);
       const message = response.data.message;
       console.log('提案レスポンスメッセージ:',message);
@@ -171,7 +215,7 @@ interface StationInfo {
               無料メンバー登録
             </Link>
             ・
-            <Link href="/stripes" className="text-blue-500 hover:underline">
+            <Link href="/payment" className="text-blue-500 hover:underline">
               有料プランにアップグレード
             </Link>{' '}
             してください。
@@ -186,7 +230,7 @@ interface StationInfo {
           setError(
           <span>
               3回目以降は{' '}
-            <Link href="/stripes" className="text-blue-500 hover:underline">
+            <Link href="/payment" className="text-blue-500 hover:underline">
               有料プランにアップグレード
             </Link>{' '}
               してください
@@ -206,12 +250,23 @@ interface StationInfo {
     } catch (error) {
       console.error('Recommendation fetch failed:', error);
       setError('おすすめ情報の取得に失敗しました');
+    } finally {
+      setIsLoading(false); // 追加
     }
   };
 
 
   return (
     <div className="max-w-4xl mx-auto p-4">
+     {isLoading && (
+      <div className="fixed top-0 left-0 w-full h-full bg-gray-200 opacity-75 flex items-center justify-center z-50">
+        <div className="loader-wrapper flex flex-col items-center justify-center">
+          <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-32 w-32"></div>
+          <p className="text-xl mt-4 text-gray-700">Now Loading...</p>
+        </div>
+      </div>
+    )}
+
       <div className="ml-4">
           {userType === 'premium' && (
             <div className="text-pink-500">
