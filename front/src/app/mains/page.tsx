@@ -186,7 +186,7 @@ interface StationInfo {
           setError(
           <span>
               3回目以降は{' '}
-            <Link href="/stripes" className="text-blue-500 hover:underline">
+            <Link href="/payment" className="text-blue-500 hover:underline">
               有料プランにアップグレード
             </Link>{' '}
               してください
