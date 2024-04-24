@@ -18,7 +18,7 @@ import requests
 import httpx
 import stripe #stripeをインポート
 # import asyncpg
-from .my_prisma import save_recommendation
+# from .my_prisma import save_recommendation
 
 # 環境変数の読み込み
 load_dotenv()
@@ -187,7 +187,7 @@ class PlaceQuery(BaseModel):
     language: str = Field(default="ja", example="ja")
     station_name: str = Field(description="ランダムに選ばれた駅名を含む")
     visit_type: str = Field(description="訪問タイプを必須フィールドにする", example="一人")
-    radius: int = Field(default=2000, description="検索範囲の半径（メートル）", example=2000)
+    radius: int = Field(default=1000, description="検索範囲の半径（メートル）", example=1000)
     latitude: float = Field(description="駅の緯度")
     longitude: float = Field(description="駅の経度")
     how_to_spend_time: str = Field(description="どんな時間を過ごしたいか: のんびりとしたorアクティブなor少しの限られた", example="leisurely")
@@ -195,12 +195,12 @@ class PlaceQuery(BaseModel):
 class ResponseModel(BaseModel):
     message: str
 
-class RecommendationModel(BaseModel):
-    user_id: int = Field(..., description="ユーザーの識別ID")
-    company: str = Field(..., description="訪問タイプ")
-    activity_type: str = Field(..., description="どのように時間を過ごすか")
-    recommend_station: str = Field(..., description="推薦された駅の名前")
-    recommend_details: str = Field(..., description="推薦の詳細情報")
+# class RecommendationModel(BaseModel):
+#     user_id: int = Field(..., description="ユーザーの識別ID")
+#     company: str = Field(..., description="訪問タイプ")
+#     activity_type: str = Field(..., description="どのように時間を過ごすか")
+#     recommend_station: str = Field(..., description="推薦された駅の名前")
+#     # recommend_details: str = Field(..., description="推薦の詳細情報")
 
 # ------ランダムに取得した駅の名前を基にAPIが周辺情報を取得しLLMに投げその結果を返す------
 @app.post("/places/")
@@ -226,15 +226,39 @@ async def get_places(query: PlaceQuery):
         logging.debug(f"google_places_url: {google_places_url}")
         
         # 追加
-        types = ["park", "restaurant", "cafe", "amusement_park", "tourist_attraction", "shopping_mall"]
+        types = [
+            "park", 
+            "restaurant", 
+            "cafe", 
+            "amusement_park", 
+            "tourist_attraction", 
+            "shopping_mall", 
+            "spa",
+            "movie_theater",
+            "aquarium",  # 水族館 (子供向け)
+            "zoo",  # 動物園 (子供向け)
+            "museum",  # 博物館 (子供向け、大人向け)
+            "art_gallery",  # 美術館 (デート向け、おしゃれ)
+            "bowling_alley",
+            "stadium",  # スタジアム (アクティブ、大人向け)
+            "library",  # 図書館 (子供向け、大人向け)
+            "shopping_mall",  # ショッピングモール (デート向け、おしゃれ)
+            "clothing_store",
+            "pet_store",
+            "bakery",
+            "airport",
+            ]
         places_data_results = []
 
+        # ランダムに10件の場所の種類を選択
+        random_types = random.sample(types, 10)
+
         async with httpx.AsyncClient() as client:
-            for place_type in types:
+            for place_type in random_types:
                 params = {
                     'key': GOOGLE_MAPS_API_KEY,
                     'location': f"{query.latitude},{query.longitude}",  # フロントエンドから受け取った緯度経度
-                    'radius': query.radius,
+                    'radius': query.radius,  # radiusを整数に変更
                     # 追加
                     'type': place_type,
                     'language': query.language,
@@ -247,25 +271,27 @@ async def get_places(query: PlaceQuery):
                 logging.debug(f"Google Places API Request URL: {resp.url}")
                 logging.debug(f"Google Places API Response Status: {resp.status_code}")
 
-                if resp.status_code == 200:
+                if resp.status_code != 200:
                    logger.error(f"Google Places APIエラー: {resp.text}")
+                   raise HTTPException(status_code=resp.status_code, detail=resp.text)
+                   #continue  # エラーがあればログに記録して次のタイプへ
                    # LLMにデータを渡し、処理を行う部分を実装。
                    # ここではGoogle Places APIから得たデータを返す。
+                else:
                    places_data = resp.json()
                    logging.debug(f"Google Places APIから得たデータの中身JSON: {places_data}")
-                   places_data_results.extend(places_data.get('results', []))      
-                else:
-                    logging.error(f"API Error for {place_type}: {resp.text}")
-                    continue  # エラーがあればログに記録して次のタイプへ
+                   places_data_results.extend(places_data.get('results', []))     
+                   logging.error(f"Google Places APIから得たデータの中身 : {resp.text}")
+                    
                 # エラークライアントに返す
                 # raise HTTPException(status_code=resp.status_code, detail=resp.text)  
 
         # 取得した場所の名前のリストを作る　places_namesがリスト
-        places_names = [place['name'] for place in places_data.get('results', [])]
+        places_names = [place['name'] for place in places_data_results]
         logging.debug(f"Google Places APIから得たデータをリスト化: {places_names}")
         
-            # レスポンスにOpenAIを利用して加工を行う　取得データをLLMに投げている部分
-            # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
+        # レスポンスにOpenAIを利用して加工を行う　取得データをLLMに投げている部分
+        # places_namesを文字列に変換しknowledge 変数に格納しプロンプトの一部としてLangChain LLMに送る
         knowledge = f"以下の場所が見つかりました：{', '.join(places_names)}"
         logging.debug(f"LLM に渡すためにAPIから抽出された内容=knowledge: {knowledge}")
         
@@ -276,15 +302,20 @@ async def get_places(query: PlaceQuery):
 
         # {knowledge} でリスト化
         prompt = PromptTemplate(
-            input_variables=["knowledge"],
+            input_variables=["knowledge", "station_name", "visit_type_description", "how_to_spend_time_description"],
             template=f"""
                 土日に{query.station_name}駅周辺の徒歩で行ける範囲に{visit_type_description}外出して
                 {how_to_spend_time_description}時間を過ごしたいと考えている。
                 最適な、休日の過ごし方を、下記の周辺情報から選び、
-                ３～４つピックアップした上で行く相手に合わせた場所の提案をして欲しい。
+                ピックアップした上で行く相手に合わせた場所の提案を３～４パターン提案をして欲しい。
                 また、提案する時の口調は、優しい感じで、「休日の過ごし方について提案させていただきますね。まずは～」
                 のように話し始めて下さい。
-                回答は日本語のみでお願いします。コードや変数、その他の言語は一切含めないでください。
+    
+                回答は必ず日本語の文章のみで行ってください。
+                コードやプログラミング言語、変数、特殊な記号などは絶対に使用しないでください。
+                Console.WriteLineなどのコードを含めないでください。
+                もし使用した場合は、回答全体を自然な日本語の文章に書き換えてください。
+    
                 周辺情報: {knowledge}
             """,
         )
@@ -297,14 +328,14 @@ async def get_places(query: PlaceQuery):
         response = ResponseModel(message=llm_response)
 
         # 推薦情報を作成しデータベースに保存 <--- 新たに追加した部分
-        recommendation = RecommendationModel(
-            user_id=1,
-            company=query.visit_type,
-            activity_type=query.how_to_spend_time,
-            recommend_station=query.station_name,
-            recommend_details=response.message
-            )
-        await save_recommendation(recommendation)
+        # recommendation = RecommendationModel(
+        #     user_id=1,
+        #     company=query.visit_type,
+        #     activity_type=query.how_to_spend_time,
+        #     recommend_station=query.station_name,
+        #     recommend_details=response.message
+        #     )
+        # await save_recommendation(recommendation)
 
         return response
     
@@ -327,52 +358,52 @@ def create_payment_intent():
     return {"client_secret": intent.client_secret}
 
 # Hotpepper APIからレストラン情報を取得してLLMが返す
-@app.get("/recommendations/")
-async def get_recommendations():
-    restaurants = get_hotpepper_data()  # hotpepper.py で定義された関数を呼び出す
+# @app.get("/recommendations/")
+# async def get_recommendations():
+#     restaurants = get_hotpepper_data()  # hotpepper.py で定義された関数を呼び出す
 
-    knowledge = f"以下の場所が見つかりました：{','.join(restaurants)}"
-    prompt = PromptTemplate(
-        input_variables=["knowledge"],
-        template=f"""
-        {knowledge}
+#     knowledge = f"以下の場所が見つかりました：{','.join(restaurants)}"
+#     prompt = PromptTemplate(
+#         input_variables=["knowledge"],
+#         template=f"""
+#         {knowledge}
 
-        光が丘に住む30代女性、5歳の子供がいて、おすすめの飲食店を教えて。
-        """,
-    )
+#         光が丘に住む30代女性、5歳の子供がいて、おすすめの飲食店を教えて。
+#         """,
+#     )
 
-    # OpenAIにプロンプトを送り、JSON形式でレスポンスを得る　4/10 えりな
-    llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1024) 
-    response = ResponseModel(message=llm_response)
-    return response
+#     # OpenAIにプロンプトを送り、JSON形式でレスポンスを得る　4/10 えりな
+#     llm_response = llm(prompt.format(knowledge=knowledge), max_tokens=1024) 
+#     response = ResponseModel(message=llm_response)
+#     return response
 
 ##下記マージする方法
-class CombinedResponseModel(BaseModel):
-    places_message: str
-    recommendations_message: str
+# class CombinedResponseModel(BaseModel):
+#     places_message: str
+#     recommendations_message: str
 
-@app.get("/combined/", response_model=CombinedResponseModel)
-async def get_combined(location: str = "35.7356,139.6522"):
-    # /places/ からのデータを非同期に取得
-    places_response = await get_places(location=location)
+# @app.get("/combined/", response_model=CombinedResponseModel)
+# async def get_combined(location: str = "35.7356,139.6522"):
+#     # /places/ からのデータを非同期に取得
+#     places_response = await get_places(location=location)
     
-    # /recommendations/ からのデータを非同期に取得
-    # 非同期でデータを取得するためには、get_hotpepper_data 関数も非同期に対応させる必要があります。
-    recommendations_response = await get_recommendations()
+#     # /recommendations/ からのデータを非同期に取得
+#     # 非同期でデータを取得するためには、get_hotpepper_data 関数も非同期に対応させる必要があります。
+#     recommendations_response = await get_recommendations()
 
-    # 取得したデータをマージ
-    combined_response = CombinedResponseModel(
-        places_message=places_response.message,
-        recommendations_message=recommendations_response.message
-    )
+#     # 取得したデータをマージ
+#     combined_response = CombinedResponseModel(
+#         places_message=places_response.message,
+#         recommendations_message=recommendations_response.message
+#     )
 
-    return combined_response
+#     return combined_response
 
 
-class StationRequest(BaseModel):
-    station_name: str
+# class StationRequest(BaseModel):
+#     station_name: str
 
-app.include_router(router)
+# app.include_router(router)
 
 
 # def get_station_by_address(address: str):
@@ -384,12 +415,12 @@ async def nearest_station_endpoint(address: str):
     return find_nearest_station(address)
 
 #-----練馬駅オンりー検索のみ-----#
-@app.get("/nearest-station/", response_model=GeocodeResponse)
-async def nearest_station_endpoint(address: str):
-    if "練馬駅" in address:
-        return find_nearest_station(address)
-    else:
-        raise HTTPException(status_code=400, detail="このサービスは練馬駅限定です")
+# @app.get("/nearest-station/", response_model=GeocodeResponse)
+# async def nearest_station_endpoint(address: str):
+#     if "練馬駅" in address:
+#         return find_nearest_station(address)
+#     else:
+#         raise HTTPException(status_code=400, detail="このサービスは練馬駅限定です")
 
 # # -----最寄り駅からランダムに周辺の駅を取得-----#
 # @app.get("/find-station/")
