@@ -190,7 +190,7 @@ interface StationInfo {
         language: 'ja',
         station_name: stationInfo.name,
         visit_type: visitType,
-        radius: 2000,
+        radius: 1500,
         latitude: lat,
         longitude: lng,
         how_to_spend_time: howToSpendTime

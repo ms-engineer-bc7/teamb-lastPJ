@@ -39,7 +39,7 @@ class GeocodeResponse(BaseModel):
     nearest_station: Optional[StationInfo]
     nearby_stations: List[StationInfo]
 
-async def find_station(address: str, radius: int = 2000) -> GeocodeResponse:
+async def find_station(address: str, radius: int = 1750) -> GeocodeResponse:
     async with httpx.AsyncClient() as client:
         try:
             geocode_url = f"https://maps.googleapis.com/maps/api/geocode/json?address={address}&radius={radius}&language=ja&key={GOOGLE_MAPS_API_KEY}"
