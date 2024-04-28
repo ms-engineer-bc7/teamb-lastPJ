@@ -13,3 +13,7 @@ geopy #4/11追加
 geocoder
 prisma>=0.12.0 #4/18追加
 python-multipart #4/22追加
+pytest
+pytest-asyncio #4/28
+httpx #4/28
+pytest-mock #4/28
