@@ -71,7 +71,7 @@ LangchainでChatGPTを実践的に活用できる
 [API仕様書](https://github.com/ms-engineer-bc7/teamb-lastPJ/blob/main/back/Document.md)　back/Document.md参照<br>
 [ER図](https://miniature-icon-2d2.notion.site/ER-f25353c9e47b45a58177cc53c88612ed)<br>
 [シーケンス図](https://miniature-icon-2d2.notion.site/Firebase-LLM-e7a60192bdba4bf5aaaf04f860876272)<br>
-
+[コーディング規約](https://www.notion.so/1a122896c4b5476b8d19824049a9aedd)<br>
 
 ## タスク管理
 [Team Bu.Ra.Ri◎タスク管理](https://miniature-icon-2d2.notion.site/Team-Bu-Ra-Ri-aeb75cd0b56548659f275092f95e250f?pvs=4)<br>
