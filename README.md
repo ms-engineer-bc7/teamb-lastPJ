@@ -69,7 +69,7 @@ LangchainでChatGPTを実践的に活用できる
 [プロダクト要求仕様書（PRD）](https://miniature-icon-2d2.notion.site/PRD-2e8ad23d47c549c18a75c2405120c631?pvs=4)<br>
 [画面仕様書](https://www.notion.so/WF-5e7afd39bdbd45c7bd14eb6c8ba06b7f)<br>
 [シーケンス図](https://miniature-icon-2d2.notion.site/Firebase-LLM-e7a60192bdba4bf5aaaf04f860876272)<br>
-[API仕様書](back\Document.md)back/Document.md参照<br>
+[API仕様書](https://github.com/ms-engineer-bc7/teamb-lastPJ/blob/main/back/Document.md)back/Document.md参照<br>
 
 
 ## タスク管理
