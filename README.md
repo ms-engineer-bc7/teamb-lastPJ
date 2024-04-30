@@ -68,4 +68,5 @@ LangchainでChatGPTを実践的に活用できる
 ## タスク管理
 [Team Bu.Ra.Ri◎タスク管理](https://miniature-icon-2d2.notion.site/Team-Bu-Ra-Ri-aeb75cd0b56548659f275092f95e250f?pvs=4)<br>
 
-## 
+## スケシュール
+![スケシュール](front/public/schedule.png "スケシュール")
