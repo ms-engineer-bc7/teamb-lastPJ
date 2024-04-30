@@ -6,6 +6,7 @@ import Script from 'next/script';
 import Link from "next/link";
 import { auth } from "../../../firebase"; // Firebaseの設定ファイルをインポート
 import { User, onAuthStateChanged } from 'firebase/auth';
+// ---4/30今後Stripeの実装で必要になりそうなところコメントアウトにしています---
 // import { getStripeCustomerId } from '../utils/stripe';
 // import { getCSRFToken } from '../lib/csrf';
 
