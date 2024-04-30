@@ -2,7 +2,7 @@
   "compilerOptions": {
     "typeRoots": ["./types", "./node_modules/@types"],
     "target": "es5",
-    "types": ["node","google.maps"],
+    "types": ["node","google.maps","jest"],
     "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
@@ -20,7 +20,7 @@
         "name": "next"
       }
     ],
-    "baseUrl": "./",// プロジェクトのルートディレクトリを基点とする
+    "baseUrl": "./",
     "paths": {
       "@/*": ["./src/*"],
       "firebase/app": ["node_modules/@firebase/app/dist/index.d.ts"],
